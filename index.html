@@ -254,6 +254,48 @@ html,body{height:100%;background:var(--off-white);font-family:var(--font-body);c
 .text-muted{color:var(--gray);font-size:12px}
 .bold{font-weight:700}
 .flex-between{display:flex;align-items:center;justify-content:space-between}
+
+/* ─── PIN SCREEN ─────────────────────────────────────────────────────────── */
+#pinScreen{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9998;padding:32px}
+#pinScreen.hide{display:none}
+.pin-logo{font-family:var(--font-serif);color:var(--gold);font-size:11px;letter-spacing:.3em;text-transform:uppercase;margin-bottom:6px;opacity:.7}
+.pin-title{font-family:var(--font-serif);color:var(--white);font-size:24px;font-weight:700;text-align:center;margin-bottom:4px}
+.pin-sub{color:rgba(255,255,255,.4);font-size:12px;margin-bottom:36px}
+.pin-dots{display:flex;gap:14px;margin-bottom:32px}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);transition:all .2s}
+.pin-dot.filled{background:var(--gold);border-color:var(--gold);transform:scale(1.15)}
+.pin-dot.shake{animation:pinShake .4s ease}
+@keyframes pinShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:260px}
+.pin-key{height:64px;border-radius:var(--radius);background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);color:var(--white);font-size:22px;font-weight:600;cursor:pointer;transition:all .15s;font-family:var(--font-body);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.pin-key .letters{font-size:8px;color:rgba(255,255,255,.35);letter-spacing:.1em}
+.pin-key:active{background:var(--gold);border-color:var(--gold);transform:scale(.94)}
+.pin-key.del{color:var(--gold);font-size:18px}
+.pin-key.empty{visibility:hidden}
+.pin-error{color:var(--red);font-size:12px;margin-top:12px;min-height:18px;text-align:center}
+
+/* ─── BACKUP DRAWER ──────────────────────────────────────────────────────── */
+.backup-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.backup-btn{padding:14px 10px;border-radius:var(--radius-sm);border:1.5px solid var(--lgray);background:var(--white);font-size:12px;font-weight:700;cursor:pointer;text-align:center;color:var(--navy);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.backup-btn .bico{font-size:24px}
+.backup-btn:active{background:var(--lgray)}
+.backup-btn.gold{border-color:var(--gold);color:var(--gold-d);background:var(--gold-l)}
+.backup-btn.navy{border-color:var(--navy);color:var(--navy);background:var(--off-white)}
+.backup-btn.teal{border-color:var(--teal);color:var(--teal);background:var(--teal-l)}
+.backup-btn.red{border-color:var(--red);color:var(--red);background:var(--red-l)}
+.import-drop{border:2px dashed var(--lgray);border-radius:var(--radius-sm);padding:24px;text-align:center;cursor:pointer;transition:all .2s;font-size:13px;color:var(--gray)}
+.import-drop:active,.import-drop.drag-over{border-color:var(--gold);background:var(--gold-l);color:var(--gold-d)}
+
+/* ─── PDF PRINT ──────────────────────────────────────────────────────────── */
+@media print{
+  #pinScreen,#splash,.topbar,.fab,.overlay,#toast,#pdfBackdrop{display:none!important}
+  body,html{background:#fff;margin:0;padding:0}
+  #pdfContent{display:block!important;font-family:Georgia,serif;color:#1A1A2E;padding:24px}
+  .pdf-page-break{page-break-before:always}
+}
+#pdfBackdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:flex-end}
+#pdfBackdrop.open{display:flex}
+#pdfPanel{background:var(--white);border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;padding:24px 20px calc(24px + env(safe-area-inset-bottom));animation:slideUp .3s cubic-bezier(.32,0,.67,0)}
 </style>
 </head>
 <body>
@@ -264,6 +306,34 @@ html,body{height:100%;background:var(--off-white);font-family:var(--font-body);c
   <h1 class="splash-title">Curadoria<br>da Nova Carta</h1>
   <p class="splash-sub">Diana Milena Pinilla de Oliveira</p>
   <div class="splash-loader"></div>
+</div>
+
+<!-- PIN SCREEN -->
+<div id="pinScreen">
+  <p class="pin-logo">Terraço Itália</p>
+  <h2 class="pin-title">Curadoria</h2>
+  <p class="pin-sub">Digite o PIN de acesso</p>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-key" onclick="pinPress('1')">1<span class="letters"></span></button>
+    <button class="pin-key" onclick="pinPress('2')">2<span class="letters">ABC</span></button>
+    <button class="pin-key" onclick="pinPress('3')">3<span class="letters">DEF</span></button>
+    <button class="pin-key" onclick="pinPress('4')">4<span class="letters">GHI</span></button>
+    <button class="pin-key" onclick="pinPress('5')">5<span class="letters">JKL</span></button>
+    <button class="pin-key" onclick="pinPress('6')">6<span class="letters">MNO</span></button>
+    <button class="pin-key" onclick="pinPress('7')">7<span class="letters">PQRS</span></button>
+    <button class="pin-key" onclick="pinPress('8')">8<span class="letters">TUV</span></button>
+    <button class="pin-key" onclick="pinPress('9')">9<span class="letters">WXYZ</span></button>
+    <div class="pin-key empty"></div>
+    <button class="pin-key" onclick="pinPress('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-error" id="pinError"></div>
 </div>
 
 <!-- APP -->
@@ -277,6 +347,7 @@ html,body{height:100%;background:var(--off-white);font-family:var(--font-body);c
         <div class="topbar-sub">Nova Carta · Terraço Itália</div>
       </div>
       <button class="topbar-sync" id="syncBtn" onclick="syncAll()" title="Sincronizar">⟳</button>
+      <button class="topbar-sync" onclick="openBackup()" title="Backup / PDF" style="margin-left:6px">⋮</button>
     </div>
     <div class="tabs">
       <div class="tab active" onclick="switchTab('dashboard')"><span class="tab-icon">📊</span><span>Dashboard</span></div>
@@ -408,6 +479,25 @@ html,body{height:100%;background:var(--off-white);font-family:var(--font-body);c
       </div>
 
       <button class="btn btn-primary mt-12" onclick="saveConfig()">💾 Salvar Configurações</button>
+
+      <div class="divider" style="margin-top:24px"></div>
+      <div class="config-section" style="margin-top:16px">
+        <div class="config-section-title">🔐 Segurança — PIN de Acesso</div>
+        <div class="config-row">
+          <div><div class="config-row-label">PIN atual</div><div class="config-row-sub">4 dígitos numéricos</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+          <div>
+            <div class="form-label" style="font-size:11px;margin-bottom:4px">PIN Atual</div>
+            <input class="form-input" id="pin-old" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:.4em;font-size:18px"/>
+          </div>
+          <div>
+            <div class="form-label" style="font-size:11px;margin-bottom:4px">Novo PIN</div>
+            <input class="form-input" id="pin-new" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:.4em;font-size:18px"/>
+          </div>
+        </div>
+        <button class="btn btn-secondary mt-8" onclick="changePin()" style="margin-top:10px">🔐 Alterar PIN</button>
+      </div>
 
       <div class="divider" style="margin-top:24px"></div>
       <p class="text-muted text-center mt-8">Curadoria da Nova Carta · Terraço Itália<br>Diana Milena Pinilla de Oliveira · Sommelière</p>
@@ -625,6 +715,64 @@ html,body{height:100%;background:var(--off-white);font-family:var(--font-body);c
     <div id="detailContent"></div>
   </div>
 </div>
+
+<!-- BACKUP / EXPORT DRAWER -->
+<div class="overlay" id="backupOverlay">
+  <div class="drawer">
+    <div class="drawer-handle"></div>
+    <div class="drawer-header">
+      <div class="drawer-title">Backup & Exportar</div>
+      <button class="drawer-close" onclick="closeBackup()">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="backup-btn-row">
+        <button class="backup-btn gold" onclick="exportPDF()">
+          <span class="bico">📄</span>
+          <span>Exportar PDF</span>
+          <span class="text-muted" style="font-size:10px;font-weight:400">Carta Aprovada</span>
+        </button>
+        <button class="backup-btn teal" onclick="exportJSON()">
+          <span class="bico">💾</span>
+          <span>Exportar JSON</span>
+          <span class="text-muted" style="font-size:10px;font-weight:400">Backup completo</span>
+        </button>
+      </div>
+      <div class="backup-btn-row">
+        <button class="backup-btn navy" onclick="document.getElementById('importFile').click()">
+          <span class="bico">📥</span>
+          <span>Importar JSON</span>
+          <span class="text-muted" style="font-size:10px;font-weight:400">Restaurar backup</span>
+        </button>
+        <button class="backup-btn red" onclick="exportPDFAll()">
+          <span class="bico">📋</span>
+          <span>PDF Completo</span>
+          <span class="text-muted" style="font-size:10px;font-weight:400">Todos os vinhos</span>
+        </button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)"/>
+      <div class="divider"></div>
+      <p class="text-muted" style="font-size:11px;line-height:1.6">
+        <strong>PDF Carta Aprovada:</strong> lista elegante dos vinhos aprovados, ordenada por tipo e país, pronta para impressão.<br><br>
+        <strong>PDF Completo:</strong> todos os vinhos avaliados com status e notas.<br><br>
+        <strong>Exportar JSON:</strong> backup total com vinhos e configurações — salve no iCloud ou Google Drive.<br><br>
+        <strong>Importar JSON:</strong> restaura um backup anterior. Os dados atuais serão substituídos.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- PDF PANEL (print target) -->
+<div id="pdfBackdrop">
+  <div id="pdfPanel">
+    <div style="font-family:Georgia,serif;color:var(--navy);font-size:18px;font-weight:700;margin-bottom:4px">Pronto para imprimir</div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Use a função de impressão do seu browser e selecione "Salvar como PDF".</p>
+    <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    <button class="btn btn-secondary mt-8" onclick="closePdfPanel()">Fechar</button>
+  </div>
+</div>
+
+<!-- PDF CONTENT (hidden, shown only on print) -->
+<div id="pdfContent" style="display:none"></div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
@@ -1456,6 +1604,218 @@ async function saveConfig() {
   } catch(e) { toast('⚠️ Erro ao salvar config'); }
 }
 
+// ─── PIN ─────────────────────────────────────────────────────────────────────
+const PIN_DEFAULT = '2112';
+const PIN_KEY     = 'diana_pin';
+let pinBuffer = '';
+let pinUnlocked = false;
+
+function getPin() { return localStorage.getItem(PIN_KEY) || PIN_DEFAULT; }
+
+function pinPress(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 120);
+}
+
+function pinDel() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById(`pd${i}`).classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function checkPin() {
+  if (pinBuffer === getPin()) {
+    pinUnlocked = true;
+    document.getElementById('pinScreen').classList.add('hide');
+    loadApp();
+  } else {
+    document.getElementById('pinError').textContent = 'PIN incorreto — tente novamente';
+    document.querySelectorAll('.pin-dot').forEach(d => {
+      d.classList.add('shake');
+      setTimeout(() => d.classList.remove('shake'), 400);
+    });
+    pinBuffer = '';
+    updatePinDots();
+  }
+}
+
+function changePin() {
+  const oldVal = document.getElementById('pin-old').value.trim();
+  const newVal = document.getElementById('pin-new').value.trim();
+  if (oldVal !== getPin()) { toast('⚠️ PIN atual incorreto'); return; }
+  if (!/^\d{4}$/.test(newVal)) { toast('⚠️ Novo PIN deve ter 4 dígitos'); return; }
+  localStorage.setItem(PIN_KEY, newVal);
+  document.getElementById('pin-old').value = '';
+  document.getElementById('pin-new').value = '';
+  toast('✅ PIN alterado com sucesso');
+}
+
+// ─── BACKUP — JSON EXPORT ─────────────────────────────────────────────────────
+function exportJSON() {
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    wines: wines,
+    config: config,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `curadoria_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ Backup exportado');
+  closeBackup();
+}
+
+async function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const text    = await file.text();
+    const payload = JSON.parse(text);
+    if (!payload.wines || !Array.isArray(payload.wines)) throw new Error('Formato inválido');
+    if (!confirm(`Importar ${payload.wines.length} vinhos? Os dados atuais serão substituídos.`)) return;
+
+    // Push to Supabase — delete all then re-insert
+    toast('⏳ Importando…');
+    // Delete existing
+    await sb('diana_wines?id=gt.0', { method: 'DELETE', prefer: '' });
+    // Re-insert in batches of 20
+    const batch = 20;
+    for (let i = 0; i < payload.wines.length; i += batch) {
+      const chunk = payload.wines.slice(i, i + batch).map(w => {
+        const { id, created_at, updated_at, markup, onda_ticket, ...rest } = w;
+        return rest;
+      });
+      await sbPost('diana_wines', chunk);
+    }
+    // Restore config
+    if (payload.config) {
+      for (const [k, v] of Object.entries(payload.config)) {
+        await sbUpsert('diana_config', { chave: k, valor: v }, 'chave');
+      }
+      config = payload.config;
+    }
+    await loadWines();
+    renderDashboard();
+    renderWineList();
+    toast(`✅ ${payload.wines.length} vinhos importados`);
+    closeBackup();
+  } catch(e) {
+    toast('⚠️ Erro ao importar: ' + e.message);
+  }
+  input.value = '';
+}
+
+// ─── PDF EXPORT ───────────────────────────────────────────────────────────────
+function buildPDFContent(winesArr, title, subtitle) {
+  const byTipo = {};
+  winesArr.forEach(w => {
+    const t = w.tipo || 'Outros';
+    if (!byTipo[t]) byTipo[t] = [];
+    byTipo[t].push(w);
+  });
+  const tipoOrder = ['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado','Outros'];
+
+  let html = `
+  <div style="background:#1A1A2E;color:#B8962E;padding:28px 32px 20px;margin-bottom:0">
+    <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:6px">Terraço Itália</div>
+    <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#FFFFFF;line-height:1.2">${title}</div>
+    <div style="font-family:Georgia,serif;font-size:14px;color:#B8962E;margin-top:6px;font-style:italic">${subtitle}</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:10px">Diana Milena Pinilla de Oliveira · Sommelière · ${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>`;
+
+  tipoOrder.forEach(tipo => {
+    const list = byTipo[tipo];
+    if (!list || !list.length) return;
+    const byPais = {};
+    list.sort((a,b) => (a.pais||'').localeCompare(b.pais||'')||(a.preco_venda||0)-(b.preco_venda||0))
+        .forEach(w => { const p = w.pais||'Outros'; if(!byPais[p]) byPais[p]=[]; byPais[p].push(w); });
+
+    html += `<div style="background:#F5EDD6;padding:10px 32px;border-left:4px solid #B8962E;margin-top:0">
+      <span style="font-family:Georgia,serif;font-size:15px;font-weight:700;color:#1A1A2E">${tipoEmoji(tipo)} ${tipo.toUpperCase()}</span>
+      <span style="font-size:11px;color:#6B6B6B;margin-left:10px">${list.length} rótulo${list.length!==1?'s':''}</span>
+    </div>`;
+
+    Object.entries(byPais).forEach(([pais, pWines]) => {
+      html += `<div style="padding:4px 32px 2px;background:#F8F6F0">
+        <span style="font-size:10px;font-weight:700;color:#6B6B6B;text-transform:uppercase;letter-spacing:.1em">${pais}</span>
+      </div>`;
+      pWines.forEach((w, idx) => {
+        const bg = idx % 2 === 0 ? '#FFFFFF' : '#F8F6F0';
+        const markup = w.preco_custo && w.preco_venda ? `${(w.preco_venda/w.preco_custo).toFixed(1)}x` : '';
+        const nota = w.nota_diana ? `⭐ ${w.nota_diana}` : '';
+        const ontrade = w.ontrade_exclusivo ? '<span style="background:#E8F5E9;color:#1B5E20;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:6px">On-Trade</span>' : '';
+        const abc = w.abc_projetado ? `<span style="font-size:9px;font-weight:700;color:#B8962E;margin-left:6px">${w.abc_projetado}</span>` : '';
+        const onda = w.onda_ticket || (w.preco_venda ? getOnda(w.preco_venda) : '');
+        html += `<div style="padding:9px 32px;background:${bg};border-bottom:1px solid #F0EDE8;display:flex;align-items:center;gap:0">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:#1A1A2E">${w.nome}${ontrade}${abc}</div>
+            <div style="font-size:10px;color:#6B6B6B;margin-top:2px">${[w.produtor,w.regiao,w.uvas,w.safra].filter(Boolean).join(' · ')}</div>
+            ${w.notas_degustacao ? `<div style="font-size:10px;color:#3C3C3C;font-style:italic;margin-top:2px">${w.notas_degustacao.slice(0,120)}${w.notas_degustacao.length>120?'…':''}</div>` : ''}
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:16px">
+            ${w.preco_venda ? `<div style="font-size:14px;font-weight:700;color:#1A1A2E">R$ ${Number(w.preco_venda).toLocaleString('pt-BR')}</div>` : ''}
+            <div style="font-size:10px;color:#6B6B6B">${[onda,markup,nota].filter(Boolean).join(' · ')}</div>
+          </div>
+        </div>`;
+      });
+    });
+  });
+
+  // Summary footer
+  html += `<div style="background:#1A1A2E;padding:16px 32px;margin-top:0;display:flex;gap:24px;flex-wrap:wrap">
+    ${[
+      ['Total',''+winesArr.length+' rótulos'],
+      ['On-Trade Exclusivo',''+winesArr.filter(w=>w.ontrade_exclusivo).length],
+      ['Markup médio', winesArr.filter(w=>w.preco_custo&&w.preco_venda).length ?
+        (winesArr.filter(w=>w.preco_custo&&w.preco_venda).reduce((s,w)=>s+w.preco_venda/w.preco_custo,0)/winesArr.filter(w=>w.preco_custo&&w.preco_venda).length).toFixed(1)+'x' : '—'],
+      ['Nota Diana média', winesArr.filter(w=>w.nota_diana).length ?
+        (winesArr.filter(w=>w.nota_diana).reduce((s,w)=>s+Number(w.nota_diana),0)/winesArr.filter(w=>w.nota_diana).length).toFixed(1)+'/10' : '—'],
+    ].map(([l,v]) => `<div><div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em">${l}</div><div style="font-size:16px;font-weight:700;color:#B8962E">${v}</div></div>`).join('')}
+  </div>`;
+
+  return html;
+}
+
+function exportPDF() {
+  const aprovados = wines.filter(w => w.status === 'Aprovado');
+  if (!aprovados.length) { toast('⚠️ Nenhum vinho aprovado ainda'); return; }
+  document.getElementById('pdfContent').innerHTML = buildPDFContent(aprovados, 'Carta de Vinhos', 'Carta Aprovada — ' + aprovados.length + ' rótulos selecionados');
+  document.getElementById('pdfContent').style.display = 'block';
+  closeBackup();
+  document.getElementById('pdfBackdrop').classList.add('open');
+}
+
+function exportPDFAll() {
+  if (!wines.length) { toast('⚠️ Nenhum vinho cadastrado'); return; }
+  document.getElementById('pdfContent').innerHTML = buildPDFContent(wines, 'Curadoria Completa', 'Todos os vinhos avaliados — ' + wines.length + ' rótulos');
+  document.getElementById('pdfContent').style.display = 'block';
+  closeBackup();
+  document.getElementById('pdfBackdrop').classList.add('open');
+}
+
+function closePdfPanel() {
+  document.getElementById('pdfBackdrop').classList.remove('open');
+  document.getElementById('pdfContent').style.display = 'none';
+  document.getElementById('pdfContent').innerHTML = '';
+}
+
+// ─── BACKUP DRAWER CONTROLS ───────────────────────────────────────────────────
+function openBackup()  { document.getElementById('backupOverlay').classList.add('open'); }
+function closeBackup() { document.getElementById('backupOverlay').classList.remove('open'); }
+document.getElementById('backupOverlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeBackup(); });
+
 // ─── TOAST ───────────────────────────────────────────────────────────────────
 function toast(msg, dur = 2500) {
   const el = document.getElementById('toast');
@@ -1469,7 +1829,29 @@ document.getElementById('formOverlay').addEventListener('click', e => { if(e.tar
 document.getElementById('detailOverlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeDetail(); });
 
 // ─── BOOT ────────────────────────────────────────────────────────────────────
-setTimeout(init, 1400);
+async function loadApp() {
+  buildNotaStars();
+  try {
+    await loadConfig();
+    await loadWines();
+    renderDashboard();
+    renderWineList();
+    renderConfig();
+  } catch(e) {
+    console.warn('Init error:', e);
+    toast('⚠️ Sem conexão — dados em cache', 3500);
+    loadLocalFallback();
+    renderDashboard();
+    renderWineList();
+    renderConfig();
+  }
+  document.getElementById('app').style.display = 'flex';
+}
+
+// Show splash → then PIN
+setTimeout(() => {
+  document.getElementById('splash').classList.add('hide');
+}, 1400);
 </script>
 </body>
 </html>
