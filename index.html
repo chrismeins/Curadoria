@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#1A1A2E" id="themeColorMeta"/>
-<title>Curadoria · Terraço Itália</title>
+<title>SommCurator</title>
 <link rel="manifest" href="manifest.json"/>
 <style>
 /* ═══ TEMA CLARO (padrão) ══════════════════════════════════════════════════ */
@@ -355,9 +355,66 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-body);color:va
 .mt-4{margin-top:4px}.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}
 .text-center{text-align:center}.text-muted{color:var(--text3);font-size:11px}
 .bold{font-weight:700}.flex-between{display:flex;align-items:center;justify-content:space-between}
+/* ═══ AUTH SCREEN ═══════════════════════════════════════════════════════════ */
+#authScreen{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9997;padding:32px;overflow-y:auto}
+#authScreen.hide{display:none}
+.auth-logo{font-family:var(--font-serif);color:var(--gold);font-size:11px;letter-spacing:.35em;text-transform:uppercase;margin-bottom:8px;opacity:.7}
+.auth-brand{font-family:var(--font-serif);color:#fff;font-size:32px;font-weight:700;text-align:center;margin-bottom:4px}
+.auth-tagline{color:rgba(255,255,255,.4);font-size:13px;text-align:center;margin-bottom:36px;font-style:italic}
+.auth-card{background:rgba(255,255,255,.06);border:1px solid rgba(184,150,46,.25);border-radius:var(--radius);padding:28px 24px;width:100%;max-width:360px}
+.auth-tabs{display:flex;background:rgba(0,0,0,.3);border-radius:var(--radius-sm);padding:3px;margin-bottom:22px}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;color:rgba(255,255,255,.45);transition:all .2s}
+.auth-tab.active{background:var(--gold);color:var(--navy)}
+.auth-input-group{margin-bottom:14px}
+.auth-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.auth-input{width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:#fff;font-size:14px;outline:none;font-family:var(--font-body);transition:border-color .2s}
+.auth-input:focus{border-color:var(--gold)}
+.auth-input::placeholder{color:rgba(255,255,255,.25)}
+.auth-btn{width:100%;padding:13px;background:var(--gold);color:var(--navy);border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:800;cursor:pointer;margin-top:6px;font-family:var(--font-body);transition:opacity .2s;letter-spacing:.03em}
+.auth-btn:active{opacity:.85}
+.auth-btn:disabled{opacity:.45;cursor:not-allowed}
+.auth-btn-loading::after{content:'';position:absolute;right:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite}
+.auth-error{color:#EF9A9A;font-size:12px;margin-top:10px;text-align:center;min-height:18px}
+.auth-forgot{text-align:center;margin-top:14px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;text-decoration:underline}
+.auth-user-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(255,255,255,.06);border-radius:var(--radius-sm);margin-top:16px}
+.auth-avatar{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--navy);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.auth-user-info{flex:1;min-width:0}
+.auth-user-email{font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.auth-signout{font-size:11px;color:var(--gold);cursor:pointer;text-decoration:underline;flex-shrink:0}
+
+/* ═══ PROJECT SELECTOR ═══════════════════════════════════════════════════════ */
+#projectScreen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;z-index:9996;overflow-y:auto}
+#projectScreen.hide{display:none}
+.project-topbar{background:var(--navy);padding:env(safe-area-inset-top) 16px 14px;display:flex;align-items:center;justify-content:space-between}
+.project-topbar-title{font-family:var(--font-serif);color:var(--gold);font-size:18px;font-weight:700}
+.project-signout{font-size:12px;color:rgba(255,255,255,.45);cursor:pointer;padding:6px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15)}
+.project-body{padding:16px;flex:1}
+.project-greeting{font-size:13px;color:var(--text3);margin-bottom:4px}
+.project-heading{font-size:20px;font-weight:700;color:var(--text);font-family:var(--font-serif);margin-bottom:18px}
+.project-section-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.project-card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all .18s}
+.project-card:active{transform:scale(.98);border-color:var(--gold)}
+.project-card.selected{border-color:var(--gold);background:var(--gold-l)}
+.project-card-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px}
+.project-card-sub{font-size:11px;color:var(--text3)}
+.project-card-count{font-size:10px;color:var(--gold-d);font-weight:600;margin-top:4px}
+.carta-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:var(--radius-sm);background:var(--surface2);margin-bottom:7px;cursor:pointer;border:1.5px solid transparent;transition:all .18s}
+.carta-item:active{border-color:var(--gold)}
+.carta-item.selected{border-color:var(--gold);background:var(--gold-l)}
+.carta-item-left{flex:1;min-width:0}
+.carta-item-title{font-size:13px;font-weight:700;color:var(--text)}
+.carta-item-sub{font-size:10px;color:var(--text3);margin-top:1px}
+.carta-item-arrow{font-size:16px;color:var(--gold);flex-shrink:0}
+.add-btn{display:flex;align-items:center;gap:8px;padding:11px 14px;border-radius:var(--radius-sm);border:1.5px dashed var(--border);color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;background:transparent;width:100%;transition:all .18s;margin-top:4px}
+.add-btn:active{border-color:var(--gold);color:var(--gold)}
+.context-bar{background:var(--navy2);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(184,150,46,.2)}
+.context-bar-text{font-size:10px;color:rgba(255,255,255,.45);line-height:1.3}
+.context-bar-name{font-size:11px;color:var(--gold);font-weight:700;display:block}
+.context-bar-change{font-size:10px;color:rgba(255,255,255,.35);cursor:pointer;text-decoration:underline;flex-shrink:0;padding:4px 8px}
+
 /* ═══ PDF PRINT ═══════════════════════════════════════════════════════════════ */
 @media print{
-  #pinScreen,#splash,.topbar,.fab,.fab-quick,.overlay,#toast,#pdfBackdrop{display:none!important}
+  #pinScreen,#authScreen,#projectScreen,#splash,.topbar,.fab,.fab-quick,.overlay,#toast,#pdfBackdrop{display:none!important}
   body,html{background:#fff;margin:0;padding:0}
   #pdfContent{display:block!important}
 }
@@ -368,44 +425,150 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-body);color:va
 </head>
 <body>
 
-<!-- PIN -->
-<div id="pinScreen">
-  <p class="pin-logo">Terraço Itália</p>
-  <h2 class="pin-title">Curadoria</h2>
-  <p class="pin-sub">Digite o PIN de acesso</p>
-  <div class="pin-dots"><div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div></div>
-  <div class="pin-pad">
-    <button class="pin-key" onclick="pinPress('1')">1<span class="sub"></span></button>
-    <button class="pin-key" onclick="pinPress('2')">2<span class="sub">ABC</span></button>
-    <button class="pin-key" onclick="pinPress('3')">3<span class="sub">DEF</span></button>
-    <button class="pin-key" onclick="pinPress('4')">4<span class="sub">GHI</span></button>
-    <button class="pin-key" onclick="pinPress('5')">5<span class="sub">JKL</span></button>
-    <button class="pin-key" onclick="pinPress('6')">6<span class="sub">MNO</span></button>
-    <button class="pin-key" onclick="pinPress('7')">7<span class="sub">PQRS</span></button>
-    <button class="pin-key" onclick="pinPress('8')">8<span class="sub">TUV</span></button>
-    <button class="pin-key" onclick="pinPress('9')">9<span class="sub">WXYZ</span></button>
-    <div class="pin-key empty"></div>
-    <button class="pin-key" onclick="pinPress('0')">0</button>
-    <button class="pin-key del" onclick="pinDel()">⌫</button>
+<!-- ═══ AUTH SCREEN ══════════════════════════════════════════════════════════ -->
+<div id="authScreen">
+  <p class="auth-logo">SommCurator</p>
+  <h1 class="auth-brand">SommCurator</h1>
+  <p class="auth-tagline">Plataforma profissional de curadoria de cartas de vinhos</p>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Entrar</div>
+      <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Criar Conta</div>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="auth-login-form">
+      <div class="auth-input-group">
+        <div class="auth-label">E-mail</div>
+        <input class="auth-input" id="auth-email" type="email" placeholder="seu@email.com" autocomplete="email"/>
+      </div>
+      <div class="auth-input-group">
+        <div class="auth-label">Senha</div>
+        <input class="auth-input" id="auth-password" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <button class="auth-btn" id="loginBtn" onclick="doLogin()" style="position:relative">Entrar</button>
+      <div class="auth-forgot" onclick="doForgotPassword()">Esqueci minha senha</div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="auth-register-form" style="display:none">
+      <div class="auth-input-group">
+        <div class="auth-label">Nome completo</div>
+        <input class="auth-input" id="reg-nome" type="text" placeholder="Diana Milena Pinilla" autocomplete="name"/>
+      </div>
+      <div class="auth-input-group">
+        <div class="auth-label">E-mail</div>
+        <input class="auth-input" id="reg-email" type="email" placeholder="seu@email.com" autocomplete="email"/>
+      </div>
+      <div class="auth-input-group">
+        <div class="auth-label">Senha (mín. 8 caracteres)</div>
+        <input class="auth-input" id="reg-password" type="password" placeholder="••••••••" autocomplete="new-password"/>
+      </div>
+      <button class="auth-btn" id="registerBtn" onclick="doRegister()" style="position:relative">Criar Conta</button>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
   </div>
-  <div class="pin-error" id="pinError"></div>
+</div>
+
+<!-- ═══ PROJECT SELECTOR ═════════════════════════════════════════════════════ -->
+<div id="projectScreen" class="hide">
+  <div class="project-topbar">
+    <div class="project-topbar-title">SommCurator</div>
+    <div class="project-signout" onclick="doSignOut()">Sair</div>
+  </div>
+  <div class="project-body">
+    <div class="project-greeting" id="proj-greeting">Olá,</div>
+    <div class="project-heading">Selecione o projeto e a carta</div>
+
+    <div class="project-section-title">
+      <span>Seus Projetos</span>
+      <span style="cursor:pointer;color:var(--gold)" onclick="toggleNewProject()">+ Novo</span>
+    </div>
+
+    <!-- Nova projeto form (oculto por padrão) -->
+    <div id="newProjectForm" class="mini-form" style="display:none">
+      <div class="mini-form-title">Novo Projeto / Restaurante</div>
+      <div class="form-group" style="margin-bottom:10px">
+        <div class="form-label" style="color:var(--text2)">Nome <span class="req">*</span></div>
+        <input class="form-input" id="np-nome" type="text" placeholder="Ex: Terraço Itália"/>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <div class="form-label" style="color:var(--text2)">Tipo</div>
+        <select class="form-select" id="np-tipo">
+          <option>Restaurante</option><option>Hotel</option><option>Bar</option>
+          <option>Eventos</option><option>Pessoal / Estudos</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <div class="form-label" style="color:var(--text2)">Perfil (opcional)</div>
+        <input class="form-input" id="np-perfil" type="text" placeholder="Ex: Fine dining, rooftop, SP"/>
+      </div>
+      <button class="btn btn-primary" onclick="createProject()" style="margin:0">Criar Projeto</button>
+      <button class="btn btn-secondary" onclick="toggleNewProject()" style="margin-top:6px">Cancelar</button>
+    </div>
+
+    <div id="projectList">
+      <div class="text-muted text-center" style="padding:24px">Carregando projetos…</div>
+    </div>
+
+    <!-- Cartas do projeto selecionado -->
+    <div id="cartasSection" style="display:none;margin-top:18px">
+      <div class="project-section-title">
+        <span id="cartasSectionTitle">Cartas</span>
+        <span style="cursor:pointer;color:var(--gold)" onclick="toggleNewCarta()">+ Nova</span>
+      </div>
+
+      <div id="newCartaForm" class="mini-form" style="display:none">
+        <div class="mini-form-title">Nova Carta</div>
+        <div class="form-group" style="margin-bottom:10px">
+          <div class="form-label" style="color:var(--text2)">Título <span class="req">*</span></div>
+          <input class="form-input" id="nc-titulo" type="text" placeholder="Ex: Carta Principal 2026"/>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <div class="form-label" style="color:var(--text2)">Tipo</div>
+          <select class="form-select" id="nc-tipo">
+            <option>Principal</option><option>Eventos</option><option>Sazonal</option>
+            <option>Bar</option><option>Room Service</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="createCarta()" style="margin:0">Criar Carta</button>
+        <button class="btn btn-secondary" onclick="toggleNewCarta()" style="margin-top:6px">Cancelar</button>
+      </div>
+
+      <div id="cartaList"></div>
+    </div>
+
+    <button class="btn btn-primary" id="enterAppBtn" onclick="enterApp()" style="display:none;margin-top:20px">
+      Abrir Curadoria →
+    </button>
+  </div>
 </div>
 <!-- SPLASH -->
 <div id="splash">
-  <p class="splash-logo">Terraço Itália</p>
-  <h1 class="splash-title">Curadoria<br>da Nova Carta</h1>
-  <p class="splash-sub">Diana Milena Pinilla de Oliveira</p>
+  <p class="splash-logo">SommCurator</p>
+  <h1 class="splash-title">SommCurator</h1>
+  <p class="splash-sub">Plataforma de curadoria de cartas</p>
   <div class="splash-loader"></div>
 </div>
 <!-- APP -->
 <div id="app">
   <div class="topbar">
     <div class="topbar-inner">
-      <div class="topbar-left"><div class="topbar-title">Curadoria</div><div class="topbar-sub">Nova Carta · Terraço Itália</div></div>
+      <div class="topbar-left"><div class="topbar-title">SommCurator</div><div class="topbar-sub" id="topbar-sub">Curadoria de Cartas</div></div>
       <div class="topbar-actions">
         <button class="topbar-btn" id="syncBtn" onclick="syncAll()" title="Sincronizar">⟳</button>
-        <button class="topbar-btn" onclick="openBackup()" title="Backup / PDF / Comparar">⋮</button>
+        <button class="topbar-btn" onclick="openBackup()" title="Backup / PDF">⋮</button>
       </div>
+    </div>
+    <!-- Context bar: projeto atual + carta atual -->
+    <div class="context-bar" id="contextBar">
+      <div class="context-bar-text">
+        <span class="context-bar-name" id="ctx-nome">Nenhuma carta selecionada</span>
+        <span id="ctx-carta"></span>
+      </div>
+      <div class="context-bar-change" onclick="goToProjectScreen()">Trocar</div>
     </div>
     <div class="tabs">
       <div class="tab active" onclick="switchTab('dashboard')"><span class="tab-icon">📊</span><span>Dashboard</span></div>
@@ -506,13 +669,25 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-body);color:va
       <div class="config-section"><div class="config-section-title">Pesos Índice de Experiência (soma = 10)</div><div id="cfg-pesos"></div></div>
       <div class="config-section"><div class="config-section-title">Limites de Concentração</div><div id="cfg-limites"></div></div>
       <div class="config-section">
-        <div class="config-section-title">🔐 PIN de Acesso</div>
-        <div class="form-row" style="margin-bottom:10px">
-          <div class="form-group"><div class="form-label">PIN Atual</div><input class="form-input" id="pin-old" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:.4em;font-size:16px"/></div>
-          <div class="form-group"><div class="form-label">Novo PIN</div><input class="form-input" id="pin-new" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="text-align:center;letter-spacing:.4em;font-size:16px"/></div>
+        <div class="config-section-title">👤 Conta & Sessão</div>
+        <div class="config-row" id="cfg-user-row">
+          <div><div class="config-row-label" id="cfg-user-email">—</div><div class="config-row-sub">Sommelière autenticada</div></div>
         </div>
-        <div class="config-row"><div class="config-row-label">Timeout de inatividade (min)</div><input class="config-input" id="cfg-timeout" type="number" value="15" min="1" max="120"/></div>
-        <button class="btn btn-secondary mt-8" onclick="changePin()">🔐 Alterar PIN</button>
+        <div class="config-row">
+          <div class="config-row-label">Projeto ativo</div>
+          <span class="text-muted" id="cfg-projeto-nome">—</span>
+        </div>
+        <div class="config-row">
+          <div class="config-row-label">Carta ativa</div>
+          <span class="text-muted" id="cfg-carta-nome">—</span>
+        </div>
+        <button class="btn btn-secondary mt-8" onclick="goToProjectScreen()">🗂️ Trocar Projeto / Carta</button>
+        <button class="btn btn-danger" onclick="doSignOut()" style="margin-top:8px">🚪 Sair da conta</button>
+        <div class="divider" style="margin-top:14px"></div>
+        <div class="config-row">
+          <div class="config-row-label">Timeout de inatividade (min)</div>
+          <input class="config-input" id="cfg-timeout" type="number" value="30" min="1" max="480"/>
+        </div>
       </div>
       <button class="btn btn-primary mt-12" onclick="saveConfig()">💾 Salvar Configurações</button>
       <div class="divider" style="margin-top:20px"></div>
@@ -726,9 +901,15 @@ html,body{height:100%;background:var(--bg);font-family:var(--font-body);color:va
 const SUPA_URL='https://fvwlfoksplfwfcbnenwj.supabase.co';
 const SUPA_KEY='sb_publishable_ieNBktIwKGsCIwJSTGYPgQ__ypJn13L';
 const BUCKET='diana-wines';
-const PIN_KEY='diana_pin'; const PIN_DEFAULT='2112';
 const THEME_KEY='diana_theme'; const TIMEOUT_KEY='diana_timeout';
 
+// Auth state
+let currentUser=null, accessToken=null, refreshToken=null;
+// Project/carta context
+let currentProjeto=null, currentCarta=null;
+let projetos=[], cartas=[];
+let selectedProjetoId=null, selectedCartaId=null;
+// App state
 let wines=[], config={};
 let currentFilter='all', currentSearch='', currentSort='date_desc';
 let editingId=null, currentStep=0;
@@ -737,16 +918,112 @@ let notaValue=null, notaValueQ=null;
 let photoFile=null;
 let compareA=null, compareB=null, comparePicking=null;
 let lastActivity=Date.now();
-let pinBuffer='', pinUnlocked=false;
 let harmSelected=[], avgMarkup=3.2;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SUPABASE
+// SUPABASE — REST + AUTH
 // ═══════════════════════════════════════════════════════════════════════════
+function authHeader(){
+  // Use user JWT when logged in, fall back to anon key for legacy data
+  const token=accessToken||SUPA_KEY;
+  return{'apikey':SUPA_KEY,'Authorization':`Bearer ${token}`,'Content-Type':'application/json'};
+}
+
 async function sb(path,opts={}){
-  const res=await fetch(`${SUPA_URL}/rest/v1/${path}`,{...opts,headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Content-Type':'application/json','Prefer':opts.prefer||'return=representation',...(opts.headers||{})}});
+  const res=await fetch(`${SUPA_URL}/rest/v1/${path}`,{
+    ...opts,
+    headers:{...authHeader(),'Prefer':opts.prefer||'return=representation',...(opts.headers||{})}
+  });
   if(!res.ok){const e=await res.text();throw new Error(`${res.status}: ${e}`);}
   const t=await res.text();return t?JSON.parse(t):null;
+}
+const sbGet=(t,q='')=>sb(`${t}?${q}`);
+const sbPost=(t,b)=>sb(t,{method:'POST',body:JSON.stringify(b)});
+const sbPatch=(t,id,b)=>sb(`${t}?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(b)});
+const sbDel=(t,q)=>sb(`${t}?${q}`,{method:'DELETE',prefer:''});
+const sbUpsert=(t,b,on)=>sb(`${t}?on_conflict=${on}`,{method:'POST',body:JSON.stringify(b),headers:{'Prefer':'return=representation,resolution=merge-duplicates'}});
+
+// ── Auth API calls ──────────────────────────────────────────────────────────
+async function authSignIn(email,password){
+  const res=await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`,{
+    method:'POST',
+    headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({email,password})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error_description||e.msg||'Erro de autenticação');}
+  return res.json();
+}
+
+async function authSignUp(email,password,nome){
+  const res=await fetch(`${SUPA_URL}/auth/v1/signup`,{
+    method:'POST',
+    headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({email,password,data:{nome}})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error_description||e.msg||'Erro ao criar conta');}
+  return res.json();
+}
+
+async function authSignOut(){
+  if(!accessToken)return;
+  await fetch(`${SUPA_URL}/auth/v1/logout`,{
+    method:'POST',headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${accessToken}`}
+  }).catch(()=>{});
+}
+
+async function authRefresh(rToken){
+  const res=await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`,{
+    method:'POST',
+    headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({refresh_token:rToken})
+  });
+  if(!res.ok)throw new Error('Sessão expirada');
+  return res.json();
+}
+
+async function authForgotPassword(email){
+  await fetch(`${SUPA_URL}/auth/v1/recover`,{
+    method:'POST',headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({email})
+  });
+}
+
+// ── Session persistence ────────────────────────────────────────────────────
+function saveSession(session){
+  if(!session)return;
+  localStorage.setItem('sc_access',session.access_token);
+  localStorage.setItem('sc_refresh',session.refresh_token);
+  localStorage.setItem('sc_user',JSON.stringify(session.user));
+  accessToken=session.access_token;
+  refreshToken=session.refresh_token;
+  currentUser=session.user;
+}
+
+function clearSession(){
+  localStorage.removeItem('sc_access');localStorage.removeItem('sc_refresh');localStorage.removeItem('sc_user');
+  accessToken=null;refreshToken=null;currentUser=null;
+}
+
+async function restoreSession(){
+  const at=localStorage.getItem('sc_access');
+  const rt=localStorage.getItem('sc_refresh');
+  const usr=localStorage.getItem('sc_user');
+  if(!at||!rt)return false;
+  try{
+    // Try refresh to ensure token is valid
+    const session=await authRefresh(rt);
+    saveSession(session);
+    return true;
+  }catch(e){
+    // Try using stored token directly (might still be valid)
+    try{
+      accessToken=at;refreshToken=rt;currentUser=usr?JSON.parse(usr):null;
+      // Quick test: fetch user
+      const res=await fetch(`${SUPA_URL}/auth/v1/user`,{headers:{'apikey':SUPA_KEY,'Authorization':`Bearer ${at}`}});
+      if(res.ok){currentUser=await res.json();return true;}
+    }catch(e2){}
+    clearSession();return false;
+  }
 }
 const sbGet=(t,q='')=>sb(`${t}?${q}`);
 const sbPost=(t,b)=>sb(t,{method:'POST',body:JSON.stringify(b)});
@@ -804,61 +1081,273 @@ window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PIN & INACTIVITY
+// AUTH UI
 // ═══════════════════════════════════════════════════════════════════════════
-function getPin(){return localStorage.getItem(PIN_KEY)||PIN_DEFAULT;}
-function getTimeout(){return(parseInt(localStorage.getItem(TIMEOUT_KEY))||15)*60*1000;}
-function pinPress(d){if(pinBuffer.length>=4)return;pinBuffer+=d;updatePinDots();if(pinBuffer.length===4)setTimeout(checkPin,110);}
-function pinDel(){pinBuffer=pinBuffer.slice(0,-1);updatePinDots();document.getElementById('pinError').textContent='';}
-function updatePinDots(){for(let i=0;i<4;i++)document.getElementById(`pd${i}`).classList.toggle('filled',i<pinBuffer.length);}
-function checkPin(){
-  if(pinBuffer===getPin()){pinUnlocked=true;document.getElementById('pinScreen').classList.add('hide');lastActivity=Date.now();loadApp();}
-  else{
-    document.getElementById('pinError').textContent='PIN incorreto — tente novamente';
-    document.querySelectorAll('.pin-dot').forEach(d=>{d.classList.add('shake');setTimeout(()=>d.classList.remove('shake'),400);});
-    pinBuffer='';updatePinDots();
+function switchAuthTab(tab){
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('auth-login-form').style.display=tab==='login'?'block':'none';
+  document.getElementById('auth-register-form').style.display=tab==='register'?'block':'none';
+  document.getElementById('authError').textContent='';
+}
+
+async function doLogin(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-password').value;
+  if(!email||!pass){setAuthError('Preencha email e senha');return;}
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.classList.add('auth-btn-loading');btn.textContent='Entrando…';
+  try{
+    const session=await authSignIn(email,pass);
+    saveSession(session);
+    await afterAuth();
+  }catch(e){setAuthError(e.message);}
+  finally{btn.disabled=false;btn.classList.remove('auth-btn-loading');btn.textContent='Entrar';}
+}
+
+async function doRegister(){
+  const nome=document.getElementById('reg-nome').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-password').value;
+  if(!nome||!email||!pass){setAuthError('Preencha todos os campos');return;}
+  if(pass.length<8){setAuthError('Senha deve ter ao menos 8 caracteres');return;}
+  const btn=document.getElementById('registerBtn');
+  btn.disabled=true;btn.classList.add('auth-btn-loading');btn.textContent='Criando conta…';
+  try{
+    const session=await authSignUp(email,pass,nome);
+    if(session.access_token){saveSession(session);await afterAuth();}
+    else{setAuthError('Conta criada! Verifique seu email para confirmar o cadastro.');}
+  }catch(e){setAuthError(e.message);}
+  finally{btn.disabled=false;btn.classList.remove('auth-btn-loading');btn.textContent='Criar Conta';}
+}
+
+async function doForgotPassword(){
+  const email=document.getElementById('auth-email').value.trim();
+  if(!email){setAuthError('Digite seu email primeiro');return;}
+  try{await authForgotPassword(email);setAuthError('✅ Link de recuperação enviado para '+email);}
+  catch(e){setAuthError(e.message);}
+}
+
+async function doSignOut(){
+  await authSignOut();
+  clearSession();
+  currentProjeto=null;currentCarta=null;
+  wines=[];config={};
+  document.getElementById('app').style.display='none';
+  document.getElementById('projectScreen').classList.add('hide');
+  document.getElementById('authScreen').classList.remove('hide');
+  document.getElementById('auth-email').value='';
+  document.getElementById('auth-password').value='';
+  document.getElementById('authError').textContent='';
+}
+
+function setAuthError(msg){document.getElementById('authError').textContent=msg;}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AFTER AUTH → Project Selector
+// ═══════════════════════════════════════════════════════════════════════════
+async function afterAuth(){
+  document.getElementById('authScreen').classList.add('hide');
+  document.getElementById('projectScreen').classList.remove('hide');
+  // Greet user
+  const nome=currentUser?.user_metadata?.nome||currentUser?.email||'Sommelier';
+  document.getElementById('proj-greeting').textContent=`Olá, ${nome.split(' ')[0]}`;
+  await loadProjetos();
+}
+
+async function loadProjetos(){
+  try{
+    const rows=await sbGet('somm_projetos','select=*,somm_cartas(id,titulo,tipo,ativa)&ativo=eq.true&order=created_at.asc');
+    projetos=rows||[];
+  }catch(e){
+    projetos=[];
+    // Fallback: pode ser usuario antigo sem projetos
   }
+  renderProjectList();
 }
-function changePin(){
-  const o=document.getElementById('pin-old').value.trim();
-  const n=document.getElementById('pin-new').value.trim();
-  if(o!==getPin()){toast('⚠️ PIN atual incorreto');return;}
-  if(!/^\d{4}$/.test(n)){toast('⚠️ Novo PIN deve ter 4 dígitos');return;}
-  localStorage.setItem(PIN_KEY,n);
-  document.getElementById('pin-old').value='';document.getElementById('pin-new').value='';
-  toast('✅ PIN alterado');
+
+function renderProjectList(){
+  const el=document.getElementById('projectList');
+  if(!projetos.length){
+    el.innerHTML=`<div class="text-muted text-center" style="padding:20px">Nenhum projeto ainda.<br>Crie seu primeiro projeto acima.</div>`;
+    return;
+  }
+  el.innerHTML=projetos.map(p=>{
+    const cartasCount=(p.somm_cartas||[]).filter(c=>c.ativa).length;
+    return`<div class="project-card${selectedProjetoId===p.id?' selected':''}" onclick="selectProjeto('${p.id}')">
+      <div class="project-card-name">${p.nome}</div>
+      <div class="project-card-sub">${p.tipo}${p.perfil_publico?' · '+p.perfil_publico:''}</div>
+      <div class="project-card-count">${cartasCount} carta${cartasCount!==1?'s':''} ativa${cartasCount!==1?'s':''}</div>
+    </div>`;
+  }).join('');
 }
+
+function selectProjeto(id){
+  selectedProjetoId=id;
+  selectedCartaId=null;
+  renderProjectList();
+  const projeto=projetos.find(p=>p.id===id);
+  if(!projeto)return;
+  document.getElementById('cartasSectionTitle').textContent=`Cartas — ${projeto.nome}`;
+  cartas=(projeto.somm_cartas||[]).filter(c=>c.ativa);
+  renderCartaList();
+  document.getElementById('cartasSection').style.display='block';
+  document.getElementById('enterAppBtn').style.display='none';
+  document.getElementById('cartaList').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderCartaList(){
+  const el=document.getElementById('cartaList');
+  if(!cartas.length){
+    el.innerHTML=`<div class="text-muted" style="padding:12px 0">Nenhuma carta ativa. Crie uma nova carta.</div>`;
+    return;
+  }
+  el.innerHTML=cartas.map(c=>`
+    <div class="carta-item${selectedCartaId===c.id?' selected':''}" onclick="selectCarta('${c.id}')">
+      <div class="carta-item-left">
+        <div class="carta-item-title">${c.titulo}</div>
+        <div class="carta-item-sub">${c.tipo}</div>
+      </div>
+      <div class="carta-item-arrow">→</div>
+    </div>`).join('');
+}
+
+function selectCarta(id){
+  selectedCartaId=id;
+  renderCartaList();
+  document.getElementById('enterAppBtn').style.display='block';
+}
+
+function enterApp(){
+  if(!selectedProjetoId||!selectedCartaId){toast('Selecione um projeto e uma carta');return;}
+  currentProjeto=projetos.find(p=>p.id===selectedProjetoId);
+  currentCarta=cartas.find(c=>c.id===selectedCartaId);
+  localStorage.setItem('sc_projeto',JSON.stringify(currentProjeto));
+  localStorage.setItem('sc_carta',JSON.stringify(currentCarta));
+  document.getElementById('projectScreen').classList.add('hide');
+  loadApp();
+}
+
+function goToProjectScreen(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('projectScreen').classList.remove('hide');
+  // Reload projetos to get fresh data
+  loadProjetos();
+}
+
+// ── Create project ──────────────────────────────────────────────────────────
+function toggleNewProject(){
+  const f=document.getElementById('newProjectForm');
+  f.style.display=f.style.display==='none'?'block':'none';
+}
+function toggleNewCarta(){
+  const f=document.getElementById('newCartaForm');
+  f.style.display=f.style.display==='none'?'block':'none';
+}
+
+async function createProject(){
+  const nome=document.getElementById('np-nome').value.trim();
+  if(!nome){toast('⚠️ Nome obrigatório');return;}
+  try{
+    const res=await sbPost('somm_projetos',{
+      user_id:currentUser.id,
+      nome,
+      tipo:document.getElementById('np-tipo').value,
+      perfil_publico:document.getElementById('np-perfil').value.trim()||null
+    });
+    document.getElementById('np-nome').value='';document.getElementById('np-perfil').value='';
+    toggleNewProject();
+    await loadProjetos();
+    // Auto-select new project
+    const novo=res?.[0];
+    if(novo)selectProjeto(novo.id);
+    toast('✅ Projeto criado');
+  }catch(e){toast('⚠️ Erro: '+e.message);}
+}
+
+async function createCarta(){
+  if(!selectedProjetoId){toast('⚠️ Selecione um projeto primeiro');return;}
+  const titulo=document.getElementById('nc-titulo').value.trim();
+  if(!titulo){toast('⚠️ Título obrigatório');return;}
+  try{
+    const res=await sbPost('somm_cartas',{
+      user_id:currentUser.id,
+      projeto_id:selectedProjetoId,
+      titulo,
+      tipo:document.getElementById('nc-tipo').value,
+      parametros:{}
+    });
+    document.getElementById('nc-titulo').value='';
+    toggleNewCarta();
+    await loadProjetos();
+    selectProjeto(selectedProjetoId);
+    const nova=res?.[0];
+    if(nova)selectCarta(nova.id);
+    toast('✅ Carta criada');
+  }catch(e){toast('⚠️ Erro: '+e.message);}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INACTIVITY TIMEOUT (sem PIN — apenas controle de sessão)
+// ═══════════════════════════════════════════════════════════════════════════
 function resetInactivityTimer(){lastActivity=Date.now();}
 function checkInactivity(){
-  if(pinUnlocked&&Date.now()-lastActivity>getTimeout()){
-    pinUnlocked=false;pinBuffer='';updatePinDots();
-    document.getElementById('pinError').textContent='';
-    document.getElementById('pinScreen').classList.remove('hide');
-    document.getElementById('app').style.display='none';
-    // re-show app after pin re-entered via loadApp chain
+  const timeout=(parseInt(localStorage.getItem(TIMEOUT_KEY))||30)*60*1000;
+  if(currentUser&&Date.now()-lastActivity>timeout){
+    // Não desloga — apenas mostra tela de projeto para reconfirmar contexto
+    // (sessão JWT continua válida)
+    if(document.getElementById('app').style.display!=='none'){
+      document.getElementById('app').style.display='none';
+      document.getElementById('projectScreen').classList.remove('hide');
+      toast('Sessão pausada — selecione a carta para continuar',4000);
+    }
   }
 }
 document.addEventListener('touchstart',resetInactivityTimer,{passive:true});
 document.addEventListener('click',resetInactivityTimer);
-setInterval(checkInactivity,30000);
+setInterval(checkInactivity,60000);
 
 // ═══════════════════════════════════════════════════════════════════════════
-// INIT
+// INIT — carrega app com contexto da carta
 // ═══════════════════════════════════════════════════════════════════════════
 async function loadApp(){
   buildNotaStars();
-  // Reload app after re-auth
   document.getElementById('app').style.display='flex';
+  updateContextBar();
+  updateConfigAccountInfo();
   try{
-    await loadConfig();await loadWines();
+    await loadConfig();
+    await loadWines();
   }catch(e){
     console.warn(e);toast('⚠️ Offline — usando cache',3000);
-    try{const w=localStorage.getItem('diana_wines');const c=localStorage.getItem('diana_config');if(w)wines=JSON.parse(w);if(c)config=JSON.parse(c);}catch(e2){}
+    try{
+      const w=localStorage.getItem('diana_wines');
+      const c=localStorage.getItem('diana_config');
+      if(w)wines=JSON.parse(w);
+      if(c)config=JSON.parse(c);
+    }catch(e2){}
     if(!config.ondas_ticket)setDefaultConfig();
   }
   calcAvgMarkup();
   renderDashboard();renderWineList();renderConfig();
   updateThemeUI();
+}
+
+function updateContextBar(){
+  if(!currentProjeto||!currentCarta)return;
+  document.getElementById('ctx-nome').textContent=currentProjeto.nome;
+  document.getElementById('ctx-carta').textContent=currentCarta.titulo+' · '+currentCarta.tipo;
+  document.getElementById('topbar-sub').textContent=currentProjeto.nome;
+}
+
+function updateConfigAccountInfo(){
+  const email=currentUser?.email||'—';
+  const el=document.getElementById('cfg-user-email');
+  if(el)el.textContent=email;
+  const pn=document.getElementById('cfg-projeto-nome');
+  if(pn)pn.textContent=currentProjeto?.nome||'—';
+  const cn=document.getElementById('cfg-carta-nome');
+  if(cn)cn.textContent=currentCarta?.titulo||'—';
 }
 
 function setDefaultConfig(){
@@ -873,15 +1362,25 @@ function setDefaultConfig(){
 }
 
 async function loadConfig(){
-  const rows=await sbGet('diana_config','select=chave,valor');
-  if(rows){config={};rows.forEach(r=>{config[r.chave]=typeof r.valor==='string'?JSON.parse(r.valor):r.valor;});}
+  // Config filtrada pela carta atual (com fallback global sem carta)
+  const cartaFilter=currentCarta?`carta_id=eq.${currentCarta.id}`:'carta_id=is.null';
+  const rows=await sbGet('diana_config',`select=chave,valor&${cartaFilter}`);
+  // Se não achou config específica da carta, tenta global (sem user_id / legado)
+  const effective=rows?.length?rows:await sbGet('diana_config','select=chave,valor&carta_id=is.null&user_id=is.null').catch(()=>[]);
+  config={};
+  (effective||[]).forEach(r=>{config[r.chave]=typeof r.valor==='string'?JSON.parse(r.valor):r.valor;});
   if(!config.ondas_ticket)setDefaultConfig();
   localStorage.setItem('diana_config',JSON.stringify(config));
 }
 
 async function loadWines(){
-  const rows=await sbGet('diana_wines_view','select=*&order=created_at.desc');
-  wines=rows||[];localStorage.setItem('diana_wines',JSON.stringify(wines));
+  // Filtra por carta se houver contexto, caso contrário carrega todos do user
+  let query='select=*&order=created_at.desc';
+  if(currentCarta)query+=`&carta_id=eq.${currentCarta.id}`;
+  else if(currentUser)query+=`&user_id=eq.${currentUser.id}`;
+  const rows=await sbGet('diana_wines_view',query);
+  wines=rows||[];
+  localStorage.setItem('diana_wines',JSON.stringify(wines));
 }
 
 function calcAvgMarkup(){
@@ -1332,6 +1831,10 @@ async function saveWine(){
     abc_projetado:selectedABC||null,
     status:selectedStatus,
     pontos_negativos:getPontosSelected(),
+    // Context — injected from current session
+    user_id:currentUser?.id||null,
+    carta_id:currentCarta?.id||null,
+    projeto_id:currentProjeto?.id||null,
   };
   try{
     let savedId=editingId;
@@ -1510,10 +2013,39 @@ function toast(msg,dur=2600){const el=document.getElementById('toast');el.textCo
 // ALTER TABLE diana_wines ADD COLUMN IF NOT EXISTS preco_lista NUMERIC(10,2);
 
 // ═══════════════════════════════════════════════════════════════════════════
-// BOOT
+// BOOT — Auth-aware startup
 // ═══════════════════════════════════════════════════════════════════════════
 applyTheme(localStorage.getItem(THEME_KEY)||'light');
-setTimeout(()=>document.getElementById('splash').classList.add('hide'),1350);
+
+(async()=>{
+  // Show splash briefly
+  await new Promise(r=>setTimeout(r,1200));
+  document.getElementById('splash').classList.add('hide');
+
+  // Try restoring session from localStorage
+  const hasSession=await restoreSession().catch(()=>false);
+
+  if(hasSession&&currentUser){
+    // Restore last project/carta from localStorage
+    try{
+      const sp=localStorage.getItem('sc_projeto');
+      const sc=localStorage.getItem('sc_carta');
+      if(sp)currentProjeto=JSON.parse(sp);
+      if(sc)currentCarta=JSON.parse(sc);
+    }catch(e){}
+
+    if(currentProjeto&&currentCarta){
+      // Jump straight into app
+      loadApp();
+    }else{
+      // Show project selector
+      await afterAuth();
+    }
+  }else{
+    // Show login screen
+    document.getElementById('authScreen').classList.remove('hide');
+  }
+})();
 </script>
 </body>
 </html>
