@@ -352,7 +352,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
     </div>
     <div id="auth-register-form" style="display:none">
       <div class="auth-lbl">Nome</div>
-      <input class="auth-input" id="reg-nome" type="text" placeholder="Diana Milena Pinilla"/>
+      <input class="auth-input" id="reg-nome" type="text" placeholder="Seu nome completo"/>
       <div class="auth-lbl">E-mail</div>
       <input class="auth-input" id="reg-email" type="email" placeholder="seu@email.com"/>
       <div class="auth-lbl">Senha (mín. 8 caracteres)</div>
@@ -381,11 +381,11 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
     <div class="proj-sec-title"><span>Seus Projetos</span><span style="cursor:pointer;color:var(--gold)" onclick="toggleMiniForm('newProjForm')">+ Novo</span></div>
     <div id="newProjForm" class="mini-form" style="display:none">
       <div class="mini-form-title">Novo Projeto</div>
-      <div class="form-group"><div class="form-label">Nome <span class="req">*</span></div><input class="form-input" id="np-nome" placeholder="Ex: Terraço Itália"/></div>
+      <div class="form-group"><div class="form-label">Nome <span class="req">*</span></div><input class="form-input" id="np-nome" placeholder="Ex: Restaurante Exemplo"/></div>
       <div class="form-group"><div class="form-label">Tipo</div>
         <select class="form-select" id="np-tipo"><option>Restaurante</option><option>Hotel</option><option>Bar</option><option>Eventos</option><option>Pessoal</option></select>
       </div>
-      <div class="form-group"><div class="form-label">Perfil</div><input class="form-input" id="np-perfil" placeholder="Ex: Fine dining, rooftop"/></div>
+      <div class="form-group"><div class="form-label">Perfil</div><input class="form-input" id="np-perfil" placeholder="Ex: Fine dining, casual, bistrô…"/></div>
       <button class="btn btn-primary" onclick="createProjeto()" style="margin:0">Criar</button>
       <button class="btn btn-secondary" onclick="toggleMiniForm('newProjForm')" style="margin-top:6px">Cancelar</button>
     </div>
@@ -530,16 +530,16 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
         <div class="form-group">
           <div class="form-label">Vinho <span class="req">*</span></div>
           <div style="position:relative">
-            <input class="form-input" id="f-nome" type="text" placeholder="Buscar na biblioteca ou digitar…" autocomplete="off" oninput="searchBib(this.value)" onfocus="searchBib(this.value)"/>
+            <input class="form-input" id="f-nome" type="text" placeholder="Buscar na biblioteca ou digitar o nome…" autocomplete="off" oninput="searchBib(this.value)" onfocus="searchBib(this.value)"/>
             <div class="autocomplete-dropdown" id="bibDropdown"></div>
           </div>
-          <div class="form-hint" id="bibHint"></div>
+          <div class="form-hint" id="bibHint">Digite para buscar na biblioteca global ou criar um novo rótulo</div>
         </div>
         <div class="form-row">
-          <div class="form-group"><div class="form-label">Produtor</div><input class="form-input" id="f-produtor" type="text" placeholder="Ex: Catena Zapata"/></div>
-          <div class="form-group"><div class="form-label">Importadora</div><input class="form-input" id="f-importadora" type="text" placeholder="Ex: Mistral"/></div>
+          <div class="form-group"><div class="form-label">Produtor</div><input class="form-input" id="f-produtor" type="text" placeholder="Nome do produtor ou quinta"/></div>
+          <div class="form-group"><div class="form-label">Importadora</div><input class="form-input" id="f-importadora" type="text" placeholder="Nome da importadora"/></div>
         </div>
-        <div class="form-group"><div class="form-label">Contato Importadora</div><input class="form-input" id="f-contato" type="text" placeholder="Nome e telefone"/></div>
+        <div class="form-group"><div class="form-label">Contato Importadora</div><input class="form-input" id="f-contato" type="text" placeholder="Nome e telefone do representante comercial"/></div>
         <div class="form-row">
           <div class="form-group"><div class="form-label">País <span class="req">*</span></div>
             <select class="form-select" id="f-pais" onchange="checkOutroPais(this)">
@@ -548,18 +548,24 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
             </select>
           </div>
           <div class="form-group" id="f-pais-outro-group" style="display:none"><div class="form-label">País (especificar)</div><input class="form-input" id="f-pais-outro" type="text" placeholder="País"/></div>
-          <div class="form-group" id="f-regiao-group"><div class="form-label">Região</div><input class="form-input" id="f-regiao" type="text" placeholder="Ex: Mendoza"/></div>
+          <div class="form-group" id="f-regiao-group"><div class="form-label">Região</div><input class="form-input" id="f-regiao" type="text" placeholder="Região de origem"/></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><div class="form-label">Uva(s)</div><input class="form-input" id="f-uvas" type="text" placeholder="Ex: Malbec"/></div>
-          <div class="form-group"><div class="form-label">Safra</div><input class="form-input" id="f-safra" type="text" placeholder="2021 / NV" maxlength="9"/></div>
+          <div class="form-group"><div class="form-label">Uva(s)</div><input class="form-input" id="f-uvas" type="text" placeholder="Casta ou blend principal"/></div>
+          <div class="form-group"><div class="form-label">Safra</div><input class="form-input" id="f-safra" type="text" placeholder="Ano ou NV" maxlength="9"/></div>
         </div>
         <div class="form-row">
           <div class="form-group"><div class="form-label">Tipo <span class="req">*</span></div>
             <select class="form-select" id="f-tipo"><option value="">Selecionar</option><option>Espumante</option><option>Branco</option><option>Rosé</option><option>Tinto</option><option>Sobremesa</option><option>Fortificado</option></select>
           </div>
           <div class="form-group"><div class="form-label">Formato</div>
-            <select class="form-select" id="f-formato"><option value="">Selecionar</option><option>Dose 50ml</option><option>Taça 150ml</option><option>375ml</option><option>750ml</option><option>Magnum 1,5L</option></select>
+            <select class="form-select" id="f-formato">
+                <option value="">Selecionar</option>
+                <option value="375ml">Meia garrafa 375ml</option>
+                <option value="750ml" selected>Garrafa 750ml</option>
+                <option value="Magnum 1,5L">Magnum 1,5L</option>
+                <option value="Jeroboam 3L">Jeroboam 3L</option>
+              </select>
           </div>
         </div>
         <div class="form-row">
@@ -750,6 +756,28 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
   </div>
 </div>
 <div id="pdfContent" style="display:none"></div>
+<!-- ERROR MODAL -->
+<div id="errorModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border-radius:var(--radius);width:100%;max-width:420px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.3)">
+    <div style="background:var(--red);padding:14px 18px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:18px">⚠️</span>
+      <div style="flex:1">
+        <div style="color:#fff;font-weight:700;font-size:14px" id="err-title">Erro</div>
+        <div style="color:rgba(255,255,255,.7);font-size:11px" id="err-context"></div>
+      </div>
+      <button onclick="closeErrorModal()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div style="padding:16px 18px">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5" id="err-message"></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-family:monospace;font-size:11px;color:var(--text3);line-height:1.6;word-break:break-all;max-height:120px;overflow-y:auto" id="err-detail"></div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button onclick="copyError()" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--gold);background:var(--gold-l);color:var(--gold-d);font-size:12px;font-weight:700;cursor:pointer">📋 Copiar para Suporte</button>
+        <button onclick="closeErrorModal()" style="padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text3);font-size:12px;cursor:pointer">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script>
 // ═══ CONSTANTS ═══════════════════════════════════════════════════════════════
@@ -988,9 +1016,7 @@ async function createProjeto() {
     const novo = Array.isArray(res) ? res[0] : res;
     if (novo) selectProjeto(novo.id);
     toast('✅ Projeto criado');
-  } catch(e) { toast('⚠️ ' + e.message); }
-}
-async function createCarta() {
+  } catch(e) { showError('Criar Projeto', e); }
   if (!selectedProjetoId) { toast('⚠️ Selecione um projeto'); return; }
   const titulo = document.getElementById('nc-titulo').value.trim();
   if (!titulo) { toast('⚠️ Título obrigatório'); return; }
@@ -1003,10 +1029,7 @@ async function createCarta() {
     const nova = Array.isArray(res) ? res[0] : res;
     if (nova) selectCarta(nova.id);
     toast('✅ Carta criada');
-  } catch(e) { toast('⚠️ ' + e.message); }
-}
-
-// ═══ LOAD APP ════════════════════════════════════════════════════════════════
+  } catch(e) { showError('Criar Carta', e); } ════════════════════════════════════════════════════════════════
 async function loadApp() {
   document.getElementById('app').style.display = 'flex';
   updateContextBar();
@@ -1314,10 +1337,7 @@ async function quickStatus(id, status) {
     avaliacoes = avaliacoes.map(a => a.id === id ? {...a, status_avaliacao: status} : a);
     renderAvaliacoes(); renderDashboard();
     toast(`✅ ${status}`);
-  } catch(e) { toast('⚠️ Erro: ' + e.message); }
-}
-
-// ═══ CARTA ════════════════════════════════════════════════════════════════════
+  } catch(e) { showError('Atualizar Status', e); } ════════════════════════════════════════════════════════════════════
 function renderCarta() {
   const items = getCartaItems();
   const carta = currentCarta;
@@ -1367,10 +1387,7 @@ async function removeFromCarta(itemId) {
     itensCartaLocal = itensCartaLocal.filter(i => i.id !== itemId);
     renderCarta(); renderDashboard();
     toast('✅ Removido da carta');
-  } catch(e) { toast('⚠️ ' + e.message); }
-}
-
-// ═══ ADD TO CARTA ═════════════════════════════════════════════════════════════
+  } catch(e) { showError('Remover da Carta', e); } ═════════════════════════════════════════════════════════════
 function openAddCarta(avalId) {
   const av = avaliacoes.find(a => a.id === avalId);
   if (!av) return;
@@ -1420,7 +1437,7 @@ async function saveAddCarta() {
     renderCarta(); renderDashboard(); renderAvaliacoes();
     closeAddCarta(); closeDetail();
     toast('✅ Adicionado à carta');
-  } catch(e) { toast('⚠️ ' + (e.message.includes('unique') ? 'Vinho já está na carta' : e.message)); }
+  } catch(e) { showError('Adicionar à Carta', e); }
   finally { btn.disabled = false; btn.textContent = '🍷 Adicionar à Carta'; }
 }
 
@@ -1488,7 +1505,8 @@ function clearAvalForm() {
   document.getElementById('f-custo-lista').value = '';
   document.getElementById('f-custo').value = '';
   document.getElementById('f-pontuacao').value = '';
-  document.getElementById('f-data-prova').value = '';
+  // Default: today's date
+  document.getElementById('f-data-prova').value = new Date().toISOString().slice(0,10);
   document.getElementById('f-id').value = '';
   document.getElementById('f-foto-url').value = '';
   document.getElementById('f-vinho-id').value = '';
@@ -1631,7 +1649,7 @@ async function saveAvaliacao() {
     toast(editingAvalId ? '✅ Avaliação atualizada' : '✅ Avaliação salva');
   } catch(e) {
     console.error(e);
-    toast('⚠️ Erro: ' + e.message);
+    showError('Salvar Avaliação', e);
   } finally {
     btn.disabled = false; btn.classList.remove('btn-loading'); btn.textContent = '💾 Salvar Avaliação';
   }
@@ -1643,10 +1661,7 @@ async function deleteAvaliacao() {
     avaliacoes = avaliacoes.filter(a => a.id !== editingAvalId);
     renderAvaliacoes(); renderDashboard();
     closeAvalForm(); toast('🗑️ Excluído');
-  } catch(e) { toast('⚠️ ' + e.message); }
-}
-
-// ═══ QUICK AVALIAÇÃO ══════════════════════════════════════════════════════════
+  } catch(e) { showError('Excluir Avaliação', e); } ══════════════════════════════════════════════════════════
 function openQuickAvaliacao() {
   notaValueQ = null; selectedStatusQ = 'Em Avaliação';
   ['q-nome','q-nota-rap'].forEach(id => { const el = document.getElementById(id); if (el) el.value=''; });
@@ -1673,10 +1688,7 @@ async function saveQuick() {
     await loadAvaliacoes();
     renderAvaliacoes(); renderDashboard();
     closeQuick(); toast('⚡ Salvo — complete depois');
-  } catch(e) { toast('⚠️ ' + e.message); }
-}
-
-// ═══ BIBLIOTECA AUTOCOMPLETE ══════════════════════════════════════════════════
+  } catch(e) { showError('Registro Rápido', e); } ══════════════════════════════════════════════════
 function searchBib(q) {
   const dd = document.getElementById('bibDropdown');
   const hint = document.getElementById('bibHint');
@@ -1752,10 +1764,7 @@ async function saveConfig() {
     configLocal = newConfig;
     localStorage.setItem('sc_config', JSON.stringify(configLocal));
     renderDashboard(); toast('✅ Configurações salvas');
-  } catch(e) { toast('⚠️ Erro: ' + e.message); }
-}
-
-// ═══ THEME ═════════════════════════════════════════════════════════════════════
+  } catch(e) { showError('Salvar Configurações', e); } ═════════════════════════════════════════════════════════════════════
 function applyTheme(theme) {
   const eff = theme === 'auto' ? (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light') : theme;
   document.documentElement.setAttribute('data-theme', eff);
@@ -1846,7 +1855,7 @@ async function importJSON(input) {
     }
     await loadAvaliacoes(); renderAvaliacoes(); renderDashboard();
     toast(`✅ ${payload.avaliacoes.length} avaliações importadas`); closeBackup();
-  } catch(e) { toast('⚠️ Erro: ' + e.message); }
+  } catch(e) { showError('Importar JSON', e); }
   input.value = '';
 }
 
@@ -1910,6 +1919,71 @@ function toast(msg, dur = 2600) {
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), dur);
 }
+
+// ═══ ERROR MODAL ══════════════════════════════════════════════════════════════
+let lastErrorData = null;
+
+function showError(context, err) {
+  const raw = err?.message || String(err);
+  let userMsg = 'Ocorreu um erro inesperado. Copie os detalhes abaixo e envie para o suporte.';
+  let detail  = raw;
+
+  // Parse Supabase errors
+  try {
+    const parsed = JSON.parse(raw.replace(/^\d+:\s*/, ''));
+    const code   = parsed.code || '';
+    const msg    = parsed.message || raw;
+
+    if (code === 'PGRST204') {
+      const col = msg.match(/column '([^']+)'/)?.[1] || 'desconhecida';
+      userMsg = `Coluna não encontrada no banco: "${col}". O schema do banco pode estar desatualizado. Execute o script 02_create.sql novamente.`;
+    } else if (code === '23505') {
+      userMsg = 'Este registro já existe. Verifique se não está duplicando um item.';
+    } else if (code === '23503') {
+      userMsg = 'Referência inválida. O registro relacionado pode ter sido excluído.';
+    } else if (code === '42501' || code === 'PGRST301') {
+      userMsg = 'Sem permissão para esta operação. Verifique se você está autenticado corretamente.';
+    } else if (raw.includes('JWT')) {
+      userMsg = 'Sessão expirada. Faça login novamente.';
+    } else if (raw.includes('Failed to fetch') || raw.includes('NetworkError')) {
+      userMsg = 'Sem conexão com o servidor. Verifique sua internet.';
+    } else {
+      userMsg = msg;
+    }
+    detail = `Código: ${code}\nMensagem: ${msg}\nContexto: ${context}\nHorário: ${new Date().toISOString()}`;
+  } catch(e) {
+    detail = `Erro: ${raw}\nContexto: ${context}\nHorário: ${new Date().toISOString()}`;
+  }
+
+  lastErrorData = { context, raw, detail, userMsg };
+  document.getElementById('err-title').textContent = 'Erro — ' + context;
+  document.getElementById('err-context').textContent = new Date().toLocaleTimeString('pt-BR');
+  document.getElementById('err-message').textContent = userMsg;
+  document.getElementById('err-detail').textContent  = detail;
+  document.getElementById('errorModal').style.display = 'flex';
+}
+
+function closeErrorModal() {
+  document.getElementById('errorModal').style.display = 'none';
+}
+
+async function copyError() {
+  if (!lastErrorData) return;
+  const text = `SommCurator — Relatório de Erro\n${'─'.repeat(40)}\nContexto: ${lastErrorData.context}\nMensagem: ${lastErrorData.userMsg}\nDetalhes técnicos:\n${lastErrorData.detail}`;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('📋 Copiado — cole no suporte');
+  } catch(e) {
+    // Fallback: select the detail text
+    const el = document.getElementById('err-detail');
+    el.select?.();
+    toast('Selecione o texto acima e copie');
+  }
+}
+
+document.getElementById('errorModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeErrorModal();
+});
 
 // ═══ SERVICE WORKER REGISTRATION ═════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
