@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SommCurator · Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: ['attribute', '[data-theme="dark"]'],
+  theme: {
+    extend: {
+      colors: {
+        navy:  { DEFAULT:'#1A1A2E', 2:'#16213E', 3:'#0F3460' },
+        gold:  { DEFAULT:'#B8962E', l:'#F5EDD6', d:'#8B6914' },
+      },
+      fontFamily: { serif:['Georgia','serif'] }
+    }
+  }
+}
+</script>
+<style>
+  :root {
+    --gold:#B8962E; --gold-l:#F5EDD6; --gold-d:#8B6914;
+    --navy:#1A1A2E; --navy2:#16213E; --navy3:#0F3460;
+  }
+  [data-theme="dark"] {
+    --gold:#C9A84C; --gold-l:#2A2010; --gold-d:#E8C060;
+  }
+  * { box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:#F8F6F0; color:#1A1A1A; }
+  [data-theme="dark"] body { background:#0D0D0D; color:#F0EDE8; }
+
+  /* Sidebar */
+  .sidebar { background:var(--navy); min-height:100vh; width:240px; flex-shrink:0; display:flex; flex-direction:column; }
+  .sidebar-logo { font-family:Georgia,serif; color:var(--gold); font-size:22px; font-weight:700; padding:24px 20px 8px; border-bottom:1px solid rgba(184,150,46,.2); }
+  .sidebar-sub { color:rgba(255,255,255,.35); font-size:10px; letter-spacing:.15em; text-transform:uppercase; padding:0 20px 16px; margin-top:-2px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:11px 20px; cursor:pointer; color:rgba(255,255,255,.5); font-size:13px; font-weight:500; transition:all .18s; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,.05); color:#fff; }
+  .nav-item.active { background:rgba(184,150,46,.12); color:var(--gold); border-left-color:var(--gold); }
+  .nav-icon { font-size:16px; width:20px; text-align:center; }
+  .nav-section { padding:16px 20px 6px; font-size:9px; font-weight:700; color:rgba(255,255,255,.25); text-transform:uppercase; letter-spacing:.18em; }
+
+  /* Cards */
+  .kpi-card { background:#fff; border-radius:12px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,.08); border:1px solid #E8E5E0; }
+  [data-theme="dark"] .kpi-card { background:#1E1E1E; border-color:#333; }
+  .kpi-val { font-size:32px; font-weight:700; line-height:1; color:var(--navy); }
+  [data-theme="dark"] .kpi-val { color:var(--gold); }
+  .kpi-label { font-size:11px; color:#6B6B6B; text-transform:uppercase; letter-spacing:.1em; margin-top:4px; }
+  .kpi-sub { font-size:11px; color:#888; margin-top:2px; }
+
+  /* Section header */
+  .section-header { border-left:4px solid var(--gold); padding-left:12px; margin-bottom:16px; }
+  .section-title { font-family:Georgia,serif; font-size:18px; font-weight:700; color:var(--navy); }
+  [data-theme="dark"] .section-title { color:var(--gold); }
+  .section-sub { font-size:12px; color:#888; margin-top:2px; }
+
+  /* Table */
+  .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .data-table th { background:var(--navy); color:#fff; padding:10px 12px; text-align:left; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  .data-table th:first-child { border-radius:8px 0 0 0; }
+  .data-table th:last-child  { border-radius:0 8px 0 0; }
+  .data-table td { padding:10px 12px; border-bottom:1px solid #F0EDE8; vertical-align:middle; }
+  [data-theme="dark"] .data-table td { border-color:#2A2A2A; }
+  .data-table tr:hover td { background:#FFFDF8; }
+  [data-theme="dark"] .data-table tr:hover td { background:#222; }
+  .data-table tr:last-child td { border-bottom:none; }
+
+  /* Status badges */
+  .badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+  .badge-approved { background:#E8F5E9; color:#1B5E20; }
+  .badge-pending  { background:#FFF3E0; color:#E65100; }
+  .badge-rejected { background:#FFEBEE; color:#B71C1C; opacity:.7; }
+  .badge-a { background:#E8F5E9; color:#1B5E20; }
+  .badge-b { background:#FFF3E0; color:#E65100; }
+  .badge-c { background:#F4F4F4; color:#666; }
+  .badge-ontrade { background:#E0F2F1; color:#004D40; }
+
+  /* Bar */
+  .bar-track { height:8px; background:#F0EDE8; border-radius:4px; overflow:hidden; }
+  [data-theme="dark"] .bar-track { background:#2A2A2A; }
+  .bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--navy3),var(--gold)); transition:width .6s; }
+  .bar-fill.ok { background:linear-gradient(90deg,#2E7D32,#43A047); }
+  .bar-fill.warn { background:linear-gradient(90deg,#E65100,#FF8F00); }
+  .bar-fill.err  { background:linear-gradient(90deg,#B71C1C,#E53935); }
+
+  /* Alert */
+  .alert { display:flex; align-items:flex-start; gap:10px; padding:10px 14px; border-radius:8px; font-size:12px; margin-bottom:6px; }
+  .alert-ok   { background:#E8F5E9; color:#1B5E20; }
+  .alert-warn { background:#FFF3E0; color:#E65100; }
+  .alert-err  { background:#FFEBEE; color:#B71C1C; }
+
+  /* Carta builder */
+  .carta-section { background:#fff; border-radius:12px; border:1px solid #E8E5E0; overflow:hidden; margin-bottom:16px; }
+  [data-theme="dark"] .carta-section { background:#1E1E1E; border-color:#333; }
+  .carta-section-header { background:var(--navy2); color:#fff; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; }
+  .carta-section-title { font-size:13px; font-weight:700; color:#fff; }
+  .carta-section-count { font-size:11px; color:var(--gold); }
+  .carta-row { display:grid; grid-template-columns:2fr 1fr 80px 80px 90px 100px; gap:8px; padding:10px 16px; align-items:center; border-bottom:1px solid #F0EDE8; transition:background .15s; }
+  [data-theme="dark"] .carta-row { border-color:#2A2A2A; }
+  .carta-row:hover { background:#FFFDF8; }
+  [data-theme="dark"] .carta-row:hover { background:#252525; }
+  .carta-row:last-child { border-bottom:none; }
+  .carta-row-header { background:#F8F6F0; font-size:10px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:.08em; }
+  [data-theme="dark"] .carta-row-header { background:#242424; }
+
+  /* Auth overlay */
+  #authOverlay { position:fixed; inset:0; background:var(--navy); display:flex; align-items:center; justify-content:center; z-index:999; }
+  #authOverlay.hide { display:none; }
+  .auth-card { background:rgba(255,255,255,.07); border:1px solid rgba(184,150,46,.3); border-radius:16px; padding:36px 32px; width:100%; max-width:380px; }
+  .auth-input { width:100%; padding:11px 14px; background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.15); border-radius:8px; color:#fff; font-size:14px; outline:none; margin-bottom:12px; font-family:inherit; }
+  .auth-input:focus { border-color:var(--gold); }
+  .auth-input::placeholder { color:rgba(255,255,255,.3); }
+  .auth-btn { width:100%; padding:13px; background:var(--gold); color:var(--navy); border:none; border-radius:8px; font-size:14px; font-weight:800; cursor:pointer; margin-top:4px; font-family:inherit; }
+  .auth-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .auth-error { color:#EF9A9A; font-size:12px; margin-top:8px; text-align:center; min-height:18px; }
+
+  /* Context bar */
+  #contextPicker { background:rgba(255,255,255,.04); border-bottom:1px solid rgba(184,150,46,.2); padding:8px 20px; }
+  .ctx-label { font-size:9px; color:rgba(255,255,255,.3); text-transform:uppercase; letter-spacing:.15em; }
+  .ctx-select { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:6px; color:#fff; font-size:12px; padding:5px 8px; outline:none; cursor:pointer; width:100%; margin-top:3px; }
+  .ctx-select option { background:#1A1A2E; color:#fff; }
+
+  /* PDF styles */
+  #pdfModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:900; align-items:center; justify-content:center; padding:20px; }
+  #pdfModal.open { display:flex; }
+  #pdfFrame { background:#fff; width:100%; max-width:860px; max-height:90vh; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
+  #pdfContent { flex:1; overflow-y:auto; padding:40px; font-family:Georgia,serif; }
+
+  /* Spinner */
+  .spinner { width:20px; height:20px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; display:inline-block; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:#CCC; border-radius:3px; }
+  [data-theme="dark"] ::-webkit-scrollbar-thumb { background:#444; }
+
+  @media print {
+    .sidebar, #topbar, #pdfToolbar { display:none !important; }
+    #pdfContent { padding:0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH OVERLAY ═══════════════════════════════════════════════════════ -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <div style="font-family:Georgia,serif;color:var(--gold);font-size:11px;letter-spacing:.3em;text-transform:uppercase;margin-bottom:6px;opacity:.7">SommCurator</div>
+    <div style="font-family:Georgia,serif;color:#fff;font-size:26px;font-weight:700;margin-bottom:4px">Dashboard</div>
+    <div style="color:rgba(255,255,255,.4);font-size:12px;margin-bottom:28px;font-style:italic">Painel de gestão de cartas</div>
+    <input class="auth-input" id="auth-email"    type="email"    placeholder="seu@email.com" autocomplete="email"/>
+    <input class="auth-input" id="auth-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="auth-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
+<!-- ═══ APP SHELL ══════════════════════════════════════════════════════════ -->
+<div id="appShell" class="flex hide" style="min-height:100vh">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">SommCurator</div>
+    <div class="sidebar-sub">Dashboard Web</div>
+
+    <div id="contextPicker" style="padding:12px 16px">
+      <div class="ctx-label">Projeto</div>
+      <select class="ctx-select" id="ctx-projeto" onchange="onProjetoChange()">
+        <option value="">Selecionar…</option>
+      </select>
+      <div class="ctx-label" style="margin-top:8px">Carta</div>
+      <select class="ctx-select" id="ctx-carta" onchange="onCartaChange()">
+        <option value="">Selecionar…</option>
+      </select>
+    </div>
+
+    <div class="nav-section">Menu</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="nav-item" id="nav-carta"     onclick="showPage('carta')"><span class="nav-icon">🍷</span>Construtor de Carta</div>
+    <div class="nav-item" id="nav-gaps"      onclick="showPage('gaps')"><span class="nav-icon">🎯</span>Engine de Gaps</div>
+    <div class="nav-item" id="nav-pdf"       onclick="showPage('pdf')"><span class="nav-icon">📄</span>Gerar PDF</div>
+
+    <div class="nav-section" style="margin-top:auto">Conta</div>
+    <div class="nav-item" id="nav-config"    onclick="showPage('config')"><span class="nav-icon">⚙️</span>Configurações</div>
+    <div class="nav-item" onclick="doSignOut()"><span class="nav-icon">🚪</span>Sair</div>
+    <div style="padding:12px 20px 20px;font-size:10px;color:rgba(255,255,255,.2)" id="sidebar-user"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="flex-1 flex flex-col overflow-hidden" style="background:#F8F6F0" id="mainBg">
+
+    <!-- TOPBAR -->
+    <div id="topbar" class="flex items-center justify-between px-6 py-3 border-b"
+      style="background:#fff;border-color:#E8E5E0;min-height:52px">
+      <div>
+        <span class="font-bold text-sm" id="page-title" style="color:var(--navy)">Dashboard</span>
+        <span class="text-xs ml-2" style="color:#888" id="page-sub"></span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs" style="color:#888" id="topbar-ctx"></span>
+        <button onclick="syncAll()" class="text-xs px-3 py-1.5 rounded-lg border font-semibold transition-all hover:border-yellow-600"
+          style="border-color:#E0DDD8;color:#666" id="syncBtn">⟳ Sincronizar</button>
+        <button onclick="toggleTheme()" class="text-xs px-3 py-1.5 rounded-lg border"
+          style="border-color:#E0DDD8;color:#666">🌓</button>
+      </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div class="flex-1 overflow-y-auto p-6" id="pageContent">
+      <div class="text-center py-16 text-gray-400">
+        <div class="text-4xl mb-3">🍷</div>
+        <div class="font-semibold">Selecione um projeto e uma carta para começar</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF MODAL -->
+<div id="pdfModal">
+  <div id="pdfFrame">
+    <div id="pdfToolbar" class="flex items-center justify-between px-5 py-3 border-b" style="border-color:#E8E5E0">
+      <span class="font-bold text-sm" style="color:var(--navy)">Carta Gerada</span>
+      <div class="flex gap-2">
+        <button onclick="window.print()" class="text-xs px-4 py-2 rounded-lg font-bold"
+          style="background:var(--navy);color:var(--gold)">🖨️ Imprimir / PDF</button>
+        <button onclick="closePDF()" class="text-xs px-3 py-2 rounded-lg border"
+          style="border-color:#CCC;color:#666">✕ Fechar</button>
+      </div>
+    </div>
+    <div id="pdfContent"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://fvwlfoksplfwfcbnenwj.supabase.co';
+const SUPA_KEY = 'sb_publishable_ieNBktIwKGsCIwJSTGYPgQ__ypJn13L';
+
+let currentUser = null, accessToken = null, refreshToken = null;
+let projetos = [], cartas = [], wines = [], config = {};
+let currentProjetoId = null, currentCartaId = null;
+let currentPage = 'dashboard';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════════════════════════════════════
+function authHdr() {
+  return { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${accessToken || SUPA_KEY}`, 'Content-Type': 'application/json' };
+}
+async function sb(path, opts = {}) {
+  const res = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
+    ...opts, headers: { ...authHdr(), 'Prefer': opts.prefer || 'return=representation', ...(opts.headers || {}) }
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(`${res.status}: ${e}`); }
+  const t = await res.text(); return t ? JSON.parse(t) : null;
+}
+const sbGet = (t, q = '') => sb(`${t}?${q}`);
+const sbPatch = (t, id, b) => sb(`${t}?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(b) });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-password').value;
+  if (!email || !pass) { setErr('Preencha email e senha'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST', headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error_description || 'Erro'); }
+    const session = await res.json();
+    accessToken = session.access_token; refreshToken = session.refresh_token; currentUser = session.user;
+    localStorage.setItem('sc_access', accessToken); localStorage.setItem('sc_refresh', refreshToken);
+    localStorage.setItem('sc_user', JSON.stringify(currentUser));
+    await afterAuth();
+  } catch(e) { setErr(e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Entrar'; }
+}
+
+function setErr(msg) { document.getElementById('authError').textContent = msg; }
+
+async function doSignOut() {
+  localStorage.removeItem('sc_access'); localStorage.removeItem('sc_refresh'); localStorage.removeItem('sc_user');
+  accessToken = null; currentUser = null;
+  document.getElementById('appShell').classList.add('hide');
+  document.getElementById('authOverlay').classList.remove('hide');
+}
+
+async function restoreSession() {
+  const at = localStorage.getItem('sc_access');
+  const usr = localStorage.getItem('sc_user');
+  if (!at || !usr) return false;
+  try {
+    const rt = localStorage.getItem('sc_refresh');
+    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST', headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: rt })
+    });
+    if (!res.ok) throw new Error();
+    const s = await res.json();
+    accessToken = s.access_token; refreshToken = s.refresh_token; currentUser = s.user;
+    localStorage.setItem('sc_access', accessToken); localStorage.setItem('sc_refresh', refreshToken);
+    return true;
+  } catch(e) {
+    accessToken = at; currentUser = JSON.parse(usr); return true;
+  }
+}
+
+async function afterAuth() {
+  document.getElementById('authOverlay').classList.add('hide');
+  document.getElementById('appShell').classList.remove('hide');
+  document.getElementById('sidebar-user').textContent = currentUser?.email || '';
+  await loadProjetos();
+  // Restore last context
+  const lp = localStorage.getItem('sc_dash_projeto');
+  const lc = localStorage.getItem('sc_dash_carta');
+  if (lp) { document.getElementById('ctx-projeto').value = lp; await onProjetoChange(); }
+  if (lc) { document.getElementById('ctx-carta').value = lc; onCartaChange(); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PROJECTS & CARTAS
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadProjetos() {
+  try {
+    const rows = await sbGet('somm_projetos', 'select=*,somm_cartas(id,titulo,tipo,ativa)&ativo=eq.true&order=nome.asc');
+    projetos = rows || [];
+    const sel = document.getElementById('ctx-projeto');
+    sel.innerHTML = '<option value="">Selecionar projeto…</option>' +
+      projetos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+  } catch(e) { console.warn(e); }
+}
+
+async function onProjetoChange() {
+  currentProjetoId = document.getElementById('ctx-projeto').value;
+  localStorage.setItem('sc_dash_projeto', currentProjetoId);
+  const projeto = projetos.find(p => p.id === currentProjetoId);
+  const sel = document.getElementById('ctx-carta');
+  sel.innerHTML = '<option value="">Selecionar carta…</option>';
+  if (projeto?.somm_cartas) {
+    projeto.somm_cartas.filter(c => c.ativa).forEach(c => {
+      sel.innerHTML += `<option value="${c.id}">${c.titulo} · ${c.tipo}</option>`;
+    });
+  }
+  currentCartaId = null;
+  renderPage();
+}
+
+function onCartaChange() {
+  currentCartaId = document.getElementById('ctx-carta').value;
+  localStorage.setItem('sc_dash_carta', currentCartaId);
+  if (currentCartaId) loadCartaData();
+  renderPage();
+}
+
+function getContextLabel() {
+  const p = projetos.find(x => x.id === currentProjetoId);
+  const c = (p?.somm_cartas || []).find(x => x.id === currentCartaId);
+  return p && c ? `${p.nome} · ${c.titulo}` : '';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadCartaData() {
+  if (!currentCartaId) return;
+  try {
+    const [w, cfg] = await Promise.all([
+      sbGet('diana_wines_view', `select=*&carta_id=eq.${currentCartaId}&order=tipo.asc,nome.asc`),
+      sbGet('diana_config', `select=chave,valor&carta_id=eq.${currentCartaId}`)
+    ]);
+    wines = w || [];
+    config = {};
+    (cfg || []).forEach(r => { config[r.chave] = typeof r.valor === 'string' ? JSON.parse(r.valor) : r.valor; });
+    if (!config.ondas_ticket) setDefaultConfig();
+    renderPage();
+  } catch(e) { console.warn(e); }
+}
+
+function setDefaultConfig() {
+  config = {
+    ondas_ticket: [{id:1,nome:'Entrada',ate:200,meta_pct:15},{id:2,nome:'Acessível',ate:500,meta_pct:30},{id:3,nome:'Premium',ate:900,meta_pct:30},{id:4,nome:'Alto Padrão',ate:1600,meta_pct:15},{id:5,nome:'Exclusivo',ate:999999,meta_pct:10}],
+    metas_abc: {A:30,B:45,C:25},
+    metas_estilo: {Espumante:8,Branco:12,Rosé:5,Tinto:30,Sobremesa:5,Fortificado:5},
+    limites: {concentracao_pais:35,min_ontrade_pct:30}
+  };
+}
+
+async function syncAll() {
+  const btn = document.getElementById('syncBtn');
+  btn.innerHTML = '<span class="spinner"></span>';
+  await loadCartaData().catch(() => {});
+  setTimeout(() => { btn.textContent = '⟳ Sincronizar'; }, 600);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════════════
+const pageTitles = { dashboard:'Dashboard', carta:'Construtor de Carta', gaps:'Engine de Gaps', pdf:'Gerar PDF', config:'Configurações' };
+
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const nav = document.getElementById(`nav-${page}`);
+  if (nav) nav.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[page] || page;
+  document.getElementById('topbar-ctx').textContent = getContextLabel();
+  renderPage();
+}
+
+function renderPage() {
+  document.getElementById('topbar-ctx').textContent = getContextLabel();
+  if (!currentCartaId && currentPage !== 'config') {
+    document.getElementById('pageContent').innerHTML = noCartaMsg();
+    return;
+  }
+  switch(currentPage) {
+    case 'dashboard': renderDashboard(); break;
+    case 'carta':     renderCarta();     break;
+    case 'gaps':      renderGaps();      break;
+    case 'pdf':       renderPDFPage();   break;
+    case 'config':    renderConfig();    break;
+  }
+}
+
+function noCartaMsg() {
+  return `<div class="text-center py-20 text-gray-400">
+    <div class="text-5xl mb-4">🍷</div>
+    <div class="text-lg font-semibold text-gray-500">Selecione um projeto e uma carta</div>
+    <div class="text-sm mt-2">Use o seletor na barra lateral para começar</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+const fmt = n => n != null ? `R$ ${Number(n).toLocaleString('pt-BR', {minimumFractionDigits:0,maximumFractionDigits:0})}` : '—';
+const pct = (a, b) => b > 0 ? Math.round(a / b * 100) : 0;
+const tipoEmoji = t => ({Espumante:'🥂',Branco:'🤍',Rosé:'🌸',Tinto:'❤️',Sobremesa:'🍯',Fortificado:'🏛️'}[t] || '🍷');
+const approved = () => wines.filter(w => w.status === 'Aprovado');
+const avgMarkup = () => {
+  const v = approved().filter(w => w.preco_custo > 0 && w.preco_venda > 0);
+  return v.length ? (v.reduce((s, w) => s + w.preco_venda / w.preco_custo, 0) / v.length).toFixed(1) : '—';
+};
+const getOnda = p => {
+  const ondas = config.ondas_ticket || [];
+  for (const o of ondas) if (p <= (o.ate || 999999)) return `Onda ${o.id}`;
+  return 'Onda 5';
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: DASHBOARD
+// ═══════════════════════════════════════════════════════════════════════════
+function renderDashboard() {
+  const ap = approved();
+  const total = wines.length, pend = wines.filter(w => w.status === 'Em Avaliação').length, rep = wines.filter(w => w.status === 'Reprovado').length;
+  const ontrade = ap.filter(w => w.ontrade_exclusivo).length;
+  const nota_media = ap.filter(w => w.nota_diana).reduce((s, w) => s + Number(w.nota_diana), 0) / (ap.filter(w => w.nota_diana).length || 1);
+
+  document.getElementById('pageContent').innerHTML = `
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
+      <div class="kpi-card"><div class="kpi-val">${total}</div><div class="kpi-label">Total Avaliados</div></div>
+      <div class="kpi-card"><div class="kpi-val" style="color:#1B5E20">${ap.length}</div><div class="kpi-label">Aprovados</div></div>
+      <div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">${pend}</div><div class="kpi-label">Em Avaliação</div></div>
+      <div class="kpi-card"><div class="kpi-val" style="color:#B71C1C">${rep}</div><div class="kpi-label">Reprovados</div></div>
+    </div>
+    <div class="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-4">
+      <div class="kpi-card"><div class="kpi-val">${avgMarkup()}x</div><div class="kpi-label">Markup Médio</div><div class="kpi-sub">Vinhos aprovados</div></div>
+      <div class="kpi-card"><div class="kpi-val">${ontrade}</div><div class="kpi-label">On-Trade Exclusivo</div><div class="kpi-sub">${ap.length ? pct(ontrade,ap.length) : 0}% dos aprovados</div></div>
+      <div class="kpi-card"><div class="kpi-val">${ap.filter(w=>w.nota_diana).length ? nota_media.toFixed(1) : '—'}</div><div class="kpi-label">Nota Média</div><div class="kpi-sub">Diana / 10</div></div>
+      <div class="kpi-card"><div class="kpi-val">${ap.filter(w=>w.ontrade_exclusivo).length}</div><div class="kpi-label">Exclusivos</div><div class="kpi-sub">Sem âncora de preço</div></div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <!-- ABC -->
+      <div class="bg-white rounded-xl border p-5" style="border-color:#E8E5E0">
+        <div class="section-header mb-4"><div class="section-title">Distribuição ABC</div><div class="section-sub">Vinhos aprovados</div></div>
+        ${['A','B','C'].map(cls => {
+          const cnt = ap.filter(w => w.abc_projetado === cls).length;
+          const meta = (config.metas_abc || {})[cls] || 0;
+          const real = ap.length ? pct(cnt, ap.length) : 0;
+          const ok = real >= meta;
+          return `<div class="mb-3">
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-semibold">Classe ${cls} <span class="badge badge-${cls.toLowerCase()}" style="margin-left:4px">${cnt}</span></span>
+              <span style="color:#888;font-size:11px">${real}% · meta ${meta}%</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill ${ok?'ok':'warn'}" style="width:${Math.min(real,100)}%"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <!-- Estilos -->
+      <div class="bg-white rounded-xl border p-5" style="border-color:#E8E5E0">
+        <div class="section-header mb-4"><div class="section-title">Distribuição por Estilo</div></div>
+        ${['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado'].map(t => {
+          const cnt = ap.filter(w => w.tipo === t).length;
+          const meta = (config.metas_estilo || {})[t] || 0;
+          const ok = cnt >= meta;
+          return `<div class="mb-3 flex items-center gap-3">
+            <span style="width:80px;font-size:12px;color:#444">${tipoEmoji(t)} ${t}</span>
+            <div class="flex-1"><div class="bar-track"><div class="bar-fill ${ok?'ok':'err'}" style="width:${meta?Math.min(cnt/meta*100,100):0}%"></div></div></div>
+            <span style="font-size:11px;color:${ok?'#1B5E20':'#B71C1C'};width:60px;text-align:right">${cnt}/${meta} ${ok?'✅':'⚠️'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+
+      <!-- Países -->
+      <div class="bg-white rounded-xl border p-5" style="border-color:#E8E5E0">
+        <div class="section-header mb-4"><div class="section-title">Distribuição por País</div></div>
+        <div class="flex flex-wrap gap-2">
+          ${(() => {
+            const cnt = {}; ap.forEach(w => { if(w.pais) cnt[w.pais]=(cnt[w.pais]||0)+1; });
+            const lim = (config.limites||{}).concentracao_pais || 35;
+            return Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([p,c]) => {
+              const pp = ap.length ? pct(c,ap.length) : 0;
+              const warn = pp >= lim;
+              return `<span class="badge ${warn?'badge-pending':''}" style="${warn?'':'background:#F4F4F4;color:#444'}">${p} · ${c}</span>`;
+            }).join('');
+          })()}
+        </div>
+      </div>
+
+      <!-- Ondas -->
+      <div class="bg-white rounded-xl border p-5" style="border-color:#E8E5E0">
+        <div class="section-header mb-4"><div class="section-title">Ondas de Ticket</div></div>
+        ${(config.ondas_ticket||[]).map(o => {
+          const cnt = ap.filter(w => (w.onda_ticket||getOnda(w.preco_venda)) === `Onda ${o.id}`).length;
+          const avg = ap.filter(w => (w.onda_ticket||getOnda(w.preco_venda)) === `Onda ${o.id}` && w.preco_venda).reduce((s,w,_,a)=>s+w.preco_venda/a.length,0);
+          return `<div class="mb-3">
+            <div class="flex justify-between text-sm mb-1">
+              <span class="font-semibold">${o.nome}</span>
+              <span style="color:#888;font-size:11px">${cnt} rótulos ${avg>0?'· '+fmt(avg)+' médio':''}</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${ap.length?Math.min(pct(cnt,ap.length),100):0}%"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: CONSTRUTOR DE CARTA
+// ═══════════════════════════════════════════════════════════════════════════
+function renderCarta() {
+  const ap = approved();
+  const tipos = ['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado'];
+  const byTipo = {};
+  ap.forEach(w => { const t = w.tipo||'Outros'; if(!byTipo[t]) byTipo[t]=[]; byTipo[t].push(w); });
+
+  let html = `
+    <div class="flex items-center justify-between mb-5">
+      <div><div class="section-title">Carta Aprovada</div><div class="section-sub">${ap.length} rótulos · ${approved().filter(w=>w.ontrade_exclusivo).length} On-Trade exclusivo</div></div>
+      <button onclick="showPage('pdf')" class="text-sm px-4 py-2 rounded-lg font-bold" style="background:var(--navy);color:var(--gold)">📄 Gerar PDF</button>
+    </div>`;
+
+  tipos.forEach(tipo => {
+    const list = (byTipo[tipo] || []).sort((a,b) => (a.preco_venda||0)-(b.preco_venda||0));
+    if (!list.length) return;
+
+    const avg_m = list.filter(w=>w.markup).reduce((s,w,_,a)=>s+Number(w.markup)/a.length,0);
+    html += `<div class="carta-section">
+      <div class="carta-section-header">
+        <span class="carta-section-title">${tipoEmoji(tipo)} ${tipo.toUpperCase()}</span>
+        <span class="carta-section-count">${list.length} rótulos · markup médio ${avg_m>0?avg_m.toFixed(1)+'x':'—'}</span>
+      </div>
+      <div class="carta-row carta-row-header" style="padding:7px 16px;font-size:9px">
+        <span>Rótulo</span><span>País / Região</span><span>Custo</span><span>Venda</span><span>Markup</span><span>Ação</span>
+      </div>`;
+
+    list.forEach(w => {
+      const markup = w.markup ? Number(w.markup).toFixed(1)+'x' : '—';
+      const margem = w.preco_custo && w.preco_venda ? Math.round((1 - w.preco_custo/w.preco_venda)*100)+'%' : '—';
+      html += `<div class="carta-row">
+        <div>
+          <div class="font-semibold text-sm" style="color:var(--navy)">${w.nome}</div>
+          <div class="flex gap-1 mt-1 flex-wrap">
+            ${w.abc_projetado ? `<span class="badge badge-${w.abc_projetado.toLowerCase()}">${w.abc_projetado}</span>` : ''}
+            ${w.ontrade_exclusivo ? '<span class="badge badge-ontrade">🔒 On-Trade</span>' : ''}
+            ${w.nota_diana ? `<span class="badge" style="background:#FFF3E0;color:#7B5800">⭐ ${w.nota_diana}</span>` : ''}
+          </div>
+        </div>
+        <div class="text-xs" style="color:#666">${[w.pais,w.regiao,w.uvas].filter(Boolean).join(' · ')}</div>
+        <div class="text-sm font-medium" style="color:#444">${w.preco_custo ? fmt(w.preco_custo) : '—'}</div>
+        <div class="text-sm font-bold" style="color:var(--navy)">${w.preco_venda ? fmt(w.preco_venda) : '—'}</div>
+        <div class="text-sm">
+          <span class="font-bold" style="color:${w.markup&&w.markup>=2.5?'#1B5E20':'#E65100'}">${markup}</span>
+          <div class="text-xs" style="color:#888">${margem}</div>
+        </div>
+        <div class="flex gap-1">
+          <button onclick="quickReprove(${w.id})" class="text-xs px-2 py-1 rounded border"
+            style="border-color:#FFCDD2;color:#B71C1C;background:#FFEBEE" title="Mover para Reprovado">✕</button>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  if (!ap.length) html += noCartaMsg();
+  document.getElementById('pageContent').innerHTML = html;
+}
+
+async function quickReprove(id) {
+  if (!confirm('Mover este vinho para Reprovado?')) return;
+  try {
+    await sbPatch('diana_wines', id, { status: 'Reprovado' });
+    wines = wines.map(w => w.id === id ? { ...w, status: 'Reprovado' } : w);
+    renderCarta();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: ENGINE DE GAPS
+// ═══════════════════════════════════════════════════════════════════════════
+function renderGaps() {
+  const ap = approved();
+  const metaE = config.metas_estilo || {};
+  const metaABC = config.metas_abc || {};
+  const lim = config.limites || {};
+  const ondas = config.ondas_ticket || [];
+
+  const alerts = [];
+
+  // Estilos
+  ['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado'].forEach(t => {
+    const cnt = ap.filter(w => w.tipo === t).length;
+    const meta = metaE[t] || 0;
+    if (cnt < meta) alerts.push({ type:'err', titulo:`${tipoEmoji(t)} ${t} abaixo da meta`, msg:`${cnt} aprovados · meta: ${meta}`, acao:`Falta ${meta-cnt} rótulo${meta-cnt>1?'s':''}` });
+    else alerts.push({ type:'ok', titulo:`${tipoEmoji(t)} ${t}`, msg:`${cnt}/${meta} ✅` });
+  });
+
+  // ABC
+  ['A','B','C'].forEach(cls => {
+    const cnt = ap.filter(w => w.abc_projetado === cls).length;
+    const meta = metaABC[cls] || 0;
+    const real = ap.length ? pct(cnt, ap.length) : 0;
+    if (real < meta - 5) alerts.push({ type:'warn', titulo:`Classe ${cls} — distribuição baixa`, msg:`${real}% atual · meta: ${meta}%` });
+  });
+
+  // On-Trade
+  const otPct = ap.length ? pct(ap.filter(w=>w.ontrade_exclusivo).length, ap.length) : 0;
+  const otMin = lim.min_ontrade_pct || 30;
+  if (otPct < otMin) alerts.push({ type:'warn', titulo:'On-Trade Exclusivo abaixo da meta', msg:`${otPct}% atual · meta: ${otMin}%` });
+  else alerts.push({ type:'ok', titulo:'On-Trade Exclusivo', msg:`${otPct}% ✅` });
+
+  // País concentração
+  const paisCnt = ap.reduce((acc, w) => { if(w.pais) acc[w.pais]=(acc[w.pais]||0)+1; return acc; }, {});
+  const maxPais = Object.entries(paisCnt).sort((a,b)=>b[1]-a[1])[0];
+  if (maxPais && ap.length) {
+    const pp = pct(maxPais[1], ap.length);
+    if (pp >= (lim.concentracao_pais || 35)) alerts.push({ type:'warn', titulo:`Concentração em ${maxPais[0]}`, msg:`${pp}% dos aprovados · limite: ${lim.concentracao_pais||35}%` });
+  }
+
+  // Ondas vazias
+  ondas.forEach(o => {
+    const cnt = ap.filter(w => (w.onda_ticket||getOnda(w.preco_venda)) === `Onda ${o.id}`).length;
+    if (cnt === 0) alerts.push({ type:'err', titulo:`${o.nome} sem rótulos`, msg:`Nenhum vinho aprovado nesta faixa de preço` });
+  });
+
+  // Markup
+  const avgM = approved().filter(w=>w.preco_custo&&w.preco_venda);
+  if (avgM.length) {
+    const media = avgM.reduce((s,w)=>s+w.preco_venda/w.preco_custo,0)/avgM.length;
+    if (media < 2.5) alerts.push({ type:'warn', titulo:'Markup médio abaixo de 2,5x', msg:`Markup atual: ${media.toFixed(1)}x — considere revisar precificação` });
+  }
+
+  const erros = alerts.filter(a=>a.type==='err').length;
+  const avisos = alerts.filter(a=>a.type==='warn').length;
+  const ok = alerts.filter(a=>a.type==='ok').length;
+
+  document.getElementById('pageContent').innerHTML = `
+    <div class="mb-5">
+      <div class="section-title">Engine de Gaps & Alertas</div>
+      <div class="section-sub">Análise automática da carta contra suas metas configuradas</div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="kpi-card"><div class="kpi-val" style="color:#B71C1C">${erros}</div><div class="kpi-label">Violações</div></div>
+      <div class="kpi-card"><div class="kpi-val" style="color:#E65100">${avisos}</div><div class="kpi-label">Avisos</div></div>
+      <div class="kpi-card"><div class="kpi-val" style="color:#1B5E20">${ok}</div><div class="kpi-label">OK</div></div>
+    </div>
+
+    <div class="bg-white rounded-xl border p-5" style="border-color:#E8E5E0">
+      ${alerts.map(a => `
+        <div class="alert alert-${a.type}">
+          <span style="font-size:16px;flex-shrink:0">${a.type==='ok'?'✅':a.type==='warn'?'⚠️':'❌'}</span>
+          <div class="flex-1">
+            <div class="font-bold">${a.titulo}</div>
+            <div style="opacity:.8;margin-top:2px">${a.msg}</div>
+          </div>
+          ${a.acao ? `<span class="text-xs font-bold px-3 py-1 rounded-full" style="background:rgba(0,0,0,.08)">${a.acao}</span>` : ''}
+        </div>`).join('')}
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: GERAR PDF
+// ═══════════════════════════════════════════════════════════════════════════
+function renderPDFPage() {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="mb-5"><div class="section-title">Gerar PDF da Carta</div><div class="section-sub">Documento formatado para apresentar ao restaurante</div></div>
+    <div class="grid gap-4 lg:grid-cols-3">
+      <div class="bg-white rounded-xl border p-5 cursor-pointer hover:border-yellow-500 transition-all" style="border-color:#E8E5E0" onclick="generatePDF('aprovados')">
+        <div class="text-3xl mb-3">📄</div>
+        <div class="font-bold text-sm mb-1" style="color:var(--navy)">Carta Aprovada</div>
+        <div class="text-xs" style="color:#888">Apenas os vinhos aprovados, agrupados por tipo e ordenados por preço crescente. Documento elegante para o cliente.</div>
+        <div class="mt-3 text-xs font-bold" style="color:var(--gold)">${approved().length} rótulos →</div>
+      </div>
+      <div class="bg-white rounded-xl border p-5 cursor-pointer hover:border-yellow-500 transition-all" style="border-color:#E8E5E0" onclick="generatePDF('completo')">
+        <div class="text-3xl mb-3">📋</div>
+        <div class="font-bold text-sm mb-1" style="color:var(--navy)">Curadoria Completa</div>
+        <div class="text-xs" style="color:#888">Todos os vinhos avaliados com status, notas e dados comerciais. Uso interno do sommelier.</div>
+        <div class="mt-3 text-xs font-bold" style="color:var(--gold)">${wines.length} rótulos →</div>
+      </div>
+      <div class="bg-white rounded-xl border p-5 cursor-pointer hover:border-yellow-500 transition-all" style="border-color:#E8E5E0" onclick="generatePDF('executivo')">
+        <div class="text-3xl mb-3">📊</div>
+        <div class="font-bold text-sm mb-1" style="color:var(--navy)">Relatório Executivo</div>
+        <div class="text-xs" style="color:#888">KPIs, distribuição ABC, ondas de ticket e alertas. Apresentação para a gestão do restaurante.</div>
+        <div class="mt-3 text-xs font-bold" style="color:var(--gold)">Dashboard completo →</div>
+      </div>
+    </div>`;
+}
+
+function generatePDF(tipo) {
+  const ap = approved();
+  const projeto = projetos.find(p => p.id === currentProjetoId);
+  const carta = (projeto?.somm_cartas||[]).find(c => c.id === currentCartaId);
+  const data = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'});
+  const lista = tipo === 'completo' ? wines : ap;
+
+  const tipos = ['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado'];
+  const byTipo = {};
+  lista.forEach(w => { const t = w.tipo||'Outros'; if(!byTipo[t]) byTipo[t]=[]; byTipo[t].push(w); });
+
+  let body = '';
+  if (tipo === 'executivo') {
+    // Relatório executivo — KPIs e análise
+    body = `
+      <div style="margin-bottom:32px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+          ${[['Total Avaliados',wines.length,''],['Aprovados',ap.length,'color:#1B5E20'],['Markup Médio',avgMarkup()+'x','color:var(--navy)'],['On-Trade',ap.filter(w=>w.ontrade_exclusivo).length,'']].map(([l,v,s])=>`
+            <div style="border:1px solid #E8E5E0;border-radius:10px;padding:16px">
+              <div style="font-size:26px;font-weight:700;${s}">${v}</div>
+              <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.1em;margin-top:3px">${l}</div>
+            </div>`).join('')}
+        </div>
+        <div style="font-size:15px;font-weight:700;color:var(--navy);border-left:4px solid var(--gold);padding-left:12px;margin-bottom:12px">Distribuição por Estilo</div>
+        ${['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado'].map(t=>{
+          const cnt=ap.filter(w=>w.tipo===t).length;const meta=(config.metas_estilo||{})[t]||0;
+          return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+            <span style="width:90px;font-size:12px">${tipoEmoji(t)} ${t}</span>
+            <div style="flex:1;height:8px;background:#F0EDE8;border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${meta?Math.min(cnt/meta*100,100):0}%;background:${cnt>=meta?'#2E7D32':'#E53935'};border-radius:4px"></div>
+            </div>
+            <span style="font-size:11px;color:${cnt>=meta?'#1B5E20':'#B71C1C'};width:50px;text-align:right">${cnt}/${meta}</span>
+          </div>`;}).join('')}
+      </div>`;
+  } else {
+    tipos.forEach(tipo_sec => {
+      const list = (byTipo[tipo_sec]||[]).sort((a,b)=>(a.preco_venda||0)-(b.preco_venda||0));
+      if (!list.length) return;
+      body += `
+        <div style="background:#F5EDD6;padding:8px 20px;border-left:4px solid var(--gold);margin-top:24px;margin-bottom:0">
+          <span style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:var(--navy)">${tipoEmoji(tipo_sec)} ${tipo_sec.toUpperCase()}</span>
+          <span style="font-size:10px;color:#888;margin-left:10px">${list.length} rótulo${list.length!==1?'s':''}</span>
+        </div>`;
+      list.forEach((w, idx) => {
+        const bg = idx%2===0?'#fff':'#F8F6F0';
+        const markup = w.markup ? Number(w.markup).toFixed(1)+'x' : '';
+        body += `
+          <div style="display:flex;align-items:center;padding:9px 20px;background:${bg};border-bottom:1px solid #F0EDE8">
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:700;color:var(--navy)">${w.nome}
+                ${w.ontrade_exclusivo?'<span style="background:#E0F2F1;color:#004D40;font-size:9px;padding:1px 6px;border-radius:6px;margin-left:6px">On-Trade</span>':''}
+                ${w.abc_projetado?`<span style="font-size:9px;color:var(--gold);font-weight:700;margin-left:4px">${w.abc_projetado}</span>`:''}
+              </div>
+              <div style="font-size:10px;color:#888;margin-top:2px">${[w.produtor,w.pais,w.regiao,w.uvas].filter(Boolean).join(' · ')}</div>
+              ${w.notas_degustacao?`<div style="font-size:10px;color:#555;font-style:italic;margin-top:1px">${w.notas_degustacao.slice(0,100)}${w.notas_degustacao.length>100?'…':''}</div>`:''}
+            </div>
+            <div style="text-align:right;flex-shrink:0;margin-left:16px">
+              ${w.preco_venda?`<div style="font-size:14px;font-weight:700;color:var(--navy)">${fmt(w.preco_venda)}</div>`:''}
+              <div style="font-size:10px;color:#888">${[markup,w.nota_diana?'⭐'+w.nota_diana:''].filter(Boolean).join(' · ')}</div>
+              ${tipo==='completo'?`<span style="font-size:10px;padding:1px 6px;border-radius:8px;${w.status==='Aprovado'?'background:#E8F5E9;color:#1B5E20':w.status==='Reprovado'?'background:#FFEBEE;color:#B71C1C':'background:#FFF3E0;color:#E65100'}">${w.status}</span>`:''}
+            </div>
+          </div>`;
+      });
+    });
+  }
+
+  document.getElementById('pdfContent').innerHTML = `
+    <div style="background:var(--navy);padding:28px 32px 20px;color:var(--gold)">
+      <div style="font-size:9px;letter-spacing:.35em;text-transform:uppercase;opacity:.6;margin-bottom:5px">SommCurator</div>
+      <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#fff">${projeto?.nome||'—'}</div>
+      <div style="font-family:Georgia,serif;font-size:15px;color:var(--gold);margin-top:4px;font-style:italic">${carta?.titulo||''}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:10px">${data}</div>
+    </div>
+    ${body}
+    <div style="background:var(--navy);padding:14px 32px;display:flex;gap:24px;flex-wrap:wrap">
+      ${[['Total',lista.length+' rótulos'],['Aprovados',ap.length],['Markup médio',avgMarkup()+'x'],['On-Trade',ap.filter(w=>w.ontrade_exclusivo).length]].map(([l,v])=>`
+        <div>
+          <div style="font-size:8px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.12em">${l}</div>
+          <div style="font-size:16px;font-weight:700;color:var(--gold)">${v}</div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('pdfModal').classList.add('open');
+}
+
+function closePDF() { document.getElementById('pdfModal').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE: CONFIG
+// ═══════════════════════════════════════════════════════════════════════════
+function renderConfig() {
+  document.getElementById('pageContent').innerHTML = `
+    <div class="mb-5"><div class="section-title">Configurações da Carta</div></div>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="bg-white rounded-xl border p-5" style="border-color:#E8E5E0">
+        <div class="font-bold text-sm mb-4" style="color:var(--navy);border-left:3px solid var(--gold);padding-left:8px">Metas por Estilo — Mínimo Aprovados</div>
+        ${['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado'].map(t=>`
+          <div class="flex items-center justify-between py-2 border-b" style="border-color:#F0EDE8">
+            <span class="text-sm">${tipoEmoji(t)} ${t}</span>
+            <input type="number" value="${(config.metas_estilo||{})[t]||0}" min="0"
+              class="w-16 text-center border rounded-lg px-2 py-1 text-sm outline-none"
+              style="border-color:#E0DDD8" id="cfg-estilo-${t}"
+              onchange="saveConfigField('metas_estilo')"/>
+          </div>`).join('')}
+      </div>
+      <div class="bg-white rounded-xl border p-5" style="border-color:#E8E5E0">
+        <div class="font-bold text-sm mb-4" style="color:var(--navy);border-left:3px solid var(--gold);padding-left:8px">Metas ABC — % dos Aprovados</div>
+        ${['A','B','C'].map(c=>`
+          <div class="flex items-center justify-between py-2 border-b" style="border-color:#F0EDE8">
+            <span class="text-sm font-bold">Classe ${c}</span>
+            <div class="flex items-center gap-1">
+              <input type="number" value="${(config.metas_abc||{})[c]||0}" min="0" max="100"
+                class="w-16 text-center border rounded-lg px-2 py-1 text-sm outline-none"
+                style="border-color:#E0DDD8" id="cfg-abc-${c}"
+                onchange="saveConfigField('metas_abc')"/>
+              <span class="text-xs" style="color:#888">%</span>
+            </div>
+          </div>`).join('')}
+        <div class="flex items-center justify-between py-2 border-b" style="border-color:#F0EDE8">
+          <span class="text-sm">Limite concentração país</span>
+          <div class="flex items-center gap-1">
+            <input type="number" value="${(config.limites||{}).concentracao_pais||35}" min="0" max="100"
+              class="w-16 text-center border rounded-lg px-2 py-1 text-sm outline-none"
+              style="border-color:#E0DDD8" id="cfg-lim-pais"
+              onchange="saveConfigField('limites')"/>
+            <span class="text-xs" style="color:#888">%</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <span class="text-sm">% mínimo On-Trade exclusivo</span>
+          <div class="flex items-center gap-1">
+            <input type="number" value="${(config.limites||{}).min_ontrade_pct||30}" min="0" max="100"
+              class="w-16 text-center border rounded-lg px-2 py-1 text-sm outline-none"
+              style="border-color:#E0DDD8" id="cfg-lim-ontrade"
+              onchange="saveConfigField('limites')"/>
+            <span class="text-xs" style="color:#888">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button onclick="saveAllConfig()" class="mt-4 px-6 py-2.5 rounded-lg font-bold text-sm" style="background:var(--navy);color:var(--gold)">💾 Salvar Configurações</button>`;
+}
+
+async function saveAllConfig() {
+  if (!currentCartaId) { alert('Selecione uma carta primeiro'); return; }
+  const newConfig = {
+    metas_estilo: Object.fromEntries(['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado'].map(t=>[t,+document.getElementById(`cfg-estilo-${t}`)?.value||0])),
+    metas_abc: {A:+document.getElementById('cfg-abc-A')?.value||0,B:+document.getElementById('cfg-abc-B')?.value||0,C:+document.getElementById('cfg-abc-C')?.value||0},
+    limites: {concentracao_pais:+document.getElementById('cfg-lim-pais')?.value||35,min_ontrade_pct:+document.getElementById('cfg-lim-ontrade')?.value||30},
+  };
+  try {
+    for (const [k, v] of Object.entries(newConfig)) {
+      await sb(`diana_config?on_conflict=carta_id,chave`, {
+        method:'POST', body:JSON.stringify({user_id:currentUser.id,carta_id:currentCartaId,chave:k,valor:v}),
+        headers:{'Prefer':'return=representation,resolution=merge-duplicates'}
+      });
+    }
+    config = {...config,...newConfig};
+    alert('✅ Configurações salvas');
+  } catch(e) { alert('Erro: '+e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════════════════════════
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('sc_dash_theme', next);
+  document.getElementById('mainBg').style.background = next === 'dark' ? '#0D0D0D' : '#F8F6F0';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════════
+(async () => {
+  // Apply saved theme
+  const t = localStorage.getItem('sc_dash_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('mainBg').style.background = t === 'dark' ? '#0D0D0D' : '#F8F6F0';
+
+  const ok = await restoreSession().catch(() => false);
+  if (ok && currentUser) {
+    await afterAuth();
+    showPage('dashboard');
+  }
+})();
+</script>
+</body>
+</html>
