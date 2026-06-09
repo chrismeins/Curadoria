@@ -447,11 +447,17 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
     overflow-y:auto;
   ">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <span style="color:rgba(184,150,46,.6);font-size:9px;letter-spacing:.2em;text-transform:uppercase">── DEV · Boot Log ──</span>
-      <button onclick="document.getElementById('authScreen').classList.remove('hide');document.getElementById('splash').classList.add('hide')"
-        style="background:rgba(184,150,46,.15);border:1px solid rgba(184,150,46,.3);color:rgba(184,150,46,.8);font-size:10px;padding:3px 10px;border-radius:4px;cursor:pointer;font-family:monospace">
-        ir para login →
-      </button>
+      <span style="color:rgba(184,150,46,.6);font-size:9px;letter-spacing:.2em;text-transform:uppercase">── DEV · APM Boot Log ──</span>
+      <div style="display:flex;gap:6px">
+        <button onclick="APM.copy().then(ok => this.textContent = ok ? '✓ copiado' : 'selecione e copie')"
+          style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer;font-family:monospace">
+          📋 copiar
+        </button>
+        <button onclick="document.getElementById('authScreen').classList.remove('hide');document.getElementById('splash').classList.add('hide')"
+          style="background:rgba(184,150,46,.15);border:1px solid rgba(184,150,46,.3);color:rgba(184,150,46,.8);font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer;font-family:monospace">
+          → login
+        </button>
+      </div>
     </div>
     <div id="bootLogLines"></div>
   </div>
@@ -1225,34 +1231,18 @@ async function createProjeto() {
     toast('✅ Carta criada');
   } catch(e) { showError('Criar Carta', e); } ════════════════════════════════════════════════════════════════
 async function loadApp() {
+  // Called on re-entry after project/carta change
   document.getElementById('app').style.display = 'flex';
   updateContextBar();
   updateConfigInfo();
-  bootLog('Conectando ao Supabase…');
+  APM.log('Re-carregando dados (troca de carta)…');
   try {
-    bootLog('Carregando biblioteca global…');
-    await loadBiblioteca();
-    bootLog(`Biblioteca: ${biblioteca.length} vinhos`, 'ok');
-
-    bootLog('Carregando avaliações…');
-    await loadAvaliacoes();
-    bootLog(`Avaliações: ${avaliacoes.length} registros`, 'ok');
-
-    bootLog('Carregando itens da carta…');
-    await loadItensCarta();
-    bootLog(`Carta: ${itensCartaLocal.length} vinhos`, 'ok');
-
-    bootLog('Carregando configurações…');
-    await loadConfig();
-    bootLog('Configurações carregadas', 'ok');
-
-    bootLog('App pronto ✓', 'ok');
+    await Promise.all([loadBiblioteca(), loadAvaliacoes(), loadItensCarta(), loadConfig()]);
+    APM.log('Re-carga concluída', 'ok');
   } catch(e) {
-    bootLog(`Erro no carregamento: ${e.message}`, 'err');
-    bootLog('Tentando cache local…', 'warn');
+    APM.log('Re-carga parcial: ' + e.message, 'warn');
     loadFromCache();
     if (!configLocal.ondas_ticket) setDefaultConfig();
-    bootLog('Cache local aplicado', 'warn');
   }
   calcAvgMarkup();
   renderDashboard(); renderBiblioteca(); renderAvaliacoes(); renderCarta();
@@ -2367,93 +2357,202 @@ document.getElementById('errorModal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeErrorModal();
 });
 
-// ═══ BOOT LOG (DEV) ══════════════════════════════════════════════════════════
-function bootLog(msg, status = 'info') {
-  const colors = { info:'rgba(255,255,255,.55)', ok:'#81C784', err:'#EF9A9A', warn:'#FFB74D' };
-  const icons  = { info:'·', ok:'✓', err:'✗', warn:'!' };
-  const el = document.getElementById('bootLogLines');
-  if (!el) return;
-  const line = document.createElement('div');
-  line.style.cssText = `color:${colors[status]};line-height:1.7;display:flex;gap:8px`;
-  const ts = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  line.innerHTML = `<span style="color:rgba(255,255,255,.25);flex-shrink:0">${ts}</span>`
-    + `<span style="color:${colors[status]};flex-shrink:0;width:10px">${icons[status]}</span>`
-    + `<span>${msg}</span>`;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
-  console.log(`[Boot] [${status.toUpperCase()}] ${msg}`);
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// APM — Application Performance Monitor (DEV)
+// Remove ou oculte #bootLog no CSS para produção
+// ═══════════════════════════════════════════════════════════════════════════
+const APM = {
+  _start: Date.now(),
+  _marks: [],
+
+  log(msg, status = 'info') {
+    const elapsed = Date.now() - this._start;
+    this._marks.push({ ts: Date.now(), elapsed, msg, status });
+
+    // Painel visual na splash
+    const el = document.getElementById('bootLogLines');
+    if (el) {
+      const colors = { info:'rgba(255,255,255,.6)', ok:'#81C784', err:'#EF9A9A', warn:'#FFB74D' };
+      const icons  = { info:'·', ok:'✓', err:'✗', warn:'!' };
+      const line   = document.createElement('div');
+      line.style.cssText = `display:flex;gap:8px;line-height:1.75;align-items:flex-start`;
+      line.innerHTML =
+        `<span style="color:rgba(255,255,255,.2);flex-shrink:0;font-size:10px">+${elapsed}ms</span>`
+        + `<span style="color:${colors[status]};flex-shrink:0">${icons[status]}</span>`
+        + `<span style="color:${colors[status]}">${msg}</span>`;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // Console sempre
+    const tag = { info:'%c·', ok:'%c✓', err:'%c✗', warn:'%c!' }[status];
+    const css = { info:'color:#888', ok:'color:#4CAF50;font-weight:700', err:'color:#f44336;font-weight:700', warn:'color:#FF9800;font-weight:700' }[status];
+    console.log(`${tag} [+${elapsed}ms] ${msg}`, css);
+  },
+
+  // Marca início de uma operação — retorna função que marca o fim
+  time(label) {
+    const t0 = Date.now();
+    this.log(`${label}…`);
+    return (status = 'ok', detail = '') => {
+      const dur = Date.now() - t0;
+      this.log(`${label} — ${dur}ms${detail ? ' · ' + detail : ''}`, status);
+      return dur;
+    };
+  },
+
+  // Resumo final copiável
+  report() {
+    const lines = this._marks.map(m => `[+${m.elapsed}ms] [${m.status.toUpperCase()}] ${m.msg}`);
+    const text  = `SommCurator APM Report\n${new Date().toISOString()}\n${'─'.repeat(50)}\n${lines.join('\n')}`;
+    console.groupCollapsed('%c📊 APM Report — clique para expandir', 'color:#B8962E;font-weight:700');
+    console.log(text);
+    console.groupEnd();
+    return text;
+  },
+
+  // Copia o relatório para o clipboard
+  async copy() {
+    try { await navigator.clipboard.writeText(this.report()); return true; }
+    catch(e) { return false; }
+  }
+};
+
+// Alias curto
+const bootLog = (msg, status) => APM.log(msg, status);
 
 // ═══ BOOT ═════════════════════════════════════════════════════════════════════
 applyTheme(localStorage.getItem(THEME_KEY) || 'light');
 
 (async () => {
-  bootLog('App iniciando…');
-  bootLog(`Ambiente: ${navigator.onLine ? 'online' : 'offline'}`, navigator.onLine ? 'ok' : 'warn');
-  bootLog(`Supabase: ${SUPA_URL.replace('https://','')}`);
-  bootLog(`Tema: ${localStorage.getItem(THEME_KEY) || 'light (padrão)'}`);
-  bootLog(`Cache local: at=${!!localStorage.getItem('sc_at')} proj=${!!localStorage.getItem('sc_proj')}`);
+  // Linha 1: imediato, sem nenhum await ainda
+  APM.log('SommCurator iniciando');
+  APM.log(`Browser: ${navigator.userAgent.split(') ')[0].split('(')[1] || 'desconhecido'}`);
+  APM.log(`Online: ${navigator.onLine}`, navigator.onLine ? 'ok' : 'warn');
+  APM.log(`Host: ${location.hostname}${location.pathname}`);
+  APM.log(`Supabase: ${SUPA_URL.replace('https://','')}`);
 
-  await new Promise(r => setTimeout(r, 100));
+  const hasCachedSession = !!(localStorage.getItem('sc_at') && localStorage.getItem('sc_rt'));
+  const hasCachedContext = !!(localStorage.getItem('sc_proj') && localStorage.getItem('sc_carta'));
+  APM.log(`Cache: sessão=${hasCachedSession} contexto=${hasCachedContext}`);
 
-  // ── Service Worker ───────────────────────────────────────────────────────
+  // Pequena pausa para o log aparecer antes de qualquer fetch
+  await new Promise(r => setTimeout(r, 80));
+
+  // ── 1. Service Worker (não bloqueia o boot se falhar) ──────────────────
   if ('serviceWorker' in navigator) {
-    try {
-      bootLog('Registrando Service Worker…');
-      const reg = await navigator.serviceWorker.register('/sw.js');
-      bootLog(`SW ativo: ${reg.scope}`, 'ok');
-      checkPendingSync();
-      if ('SyncManager' in window) {
-        navigator.serviceWorker.ready
-          .then(sw => sw.sync.register('sc-sync-pending').catch(() => {}));
-      }
-    } catch(e) {
-      bootLog(`SW não registrado: ${e.message}`, 'warn');
-    }
+    // Não await — SW é progressivo, não bloqueia
+    const doneSwLog = APM.time('Service Worker');
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg  => { doneSwLog('ok', reg.active ? 'ativo' : 'instalando'); checkPendingSync(); })
+      .catch(err => { doneSwLog('warn', err.message); });
   } else {
-    bootLog('Service Worker: não suportado', 'warn');
+    APM.log('Service Worker: não suportado neste browser', 'warn');
   }
 
-  // ── Session ──────────────────────────────────────────────────────────────
-  bootLog('Verificando sessão salva…');
+  // ── 2. Sessão ──────────────────────────────────────────────────────────
+  const doneSession = APM.time('Verificar sessão');
   let hasSession = false;
   try {
     hasSession = await restoreSession();
-    if (hasSession && currentUser) {
-      bootLog(`Sessão ativa: ${currentUser.email}`, 'ok');
-    } else {
-      bootLog('Sem sessão válida — exibindo login', 'warn');
-    }
+    doneSession(hasSession ? 'ok' : 'warn', hasSession ? currentUser?.email : 'sem sessão');
   } catch(e) {
-    bootLog(`Erro na sessão: ${e.message}`, 'err');
+    doneSession('err', e.message);
+    APM.log(`Sessão: erro inesperado — ${e.message}`, 'err');
   }
 
-  if (hasSession && currentUser) {
-    // ── Context ─────────────────────────────────────────────────────────────
-    try {
-      const sp = localStorage.getItem('sc_proj');
-      const sc = localStorage.getItem('sc_carta');
-      if (sp) { currentProjeto = JSON.parse(sp); bootLog(`Projeto: "${currentProjeto?.nome}"`, 'ok'); }
-      else     { bootLog('Projeto: nenhum em cache'); }
-      if (sc) { currentCarta  = JSON.parse(sc);  bootLog(`Carta: "${currentCarta?.titulo}"`, 'ok'); }
-      else     { bootLog('Carta: nenhuma em cache'); }
-    } catch(e) {
-      bootLog(`Cache local: erro ao ler — ${e.message}`, 'err');
-    }
+  // ── Mostrar a tela correta ─────────────────────────────────────────────
+  document.getElementById('splash').classList.add('hide');
+  APM.log('Splash ocultada — transição para tela principal');
 
-    document.getElementById('splash').classList.add('hide');
-
-    if (currentProjeto && currentCarta) {
-      bootLog('Carregando dados da carta…');
-      loadApp();
-    } else {
-      bootLog('Abrindo seletor de projetos…');
-      await afterAuth();
-    }
-  } else {
-    document.getElementById('splash').classList.add('hide');
+  if (!hasSession || !currentUser) {
+    APM.log('→ Login', 'warn');
     document.getElementById('authScreen').classList.remove('hide');
+    APM.report();
+    return;
   }
+
+  // ── 3. Contexto (projeto/carta) ────────────────────────────────────────
+  let ctxOk = false;
+  try {
+    const sp = localStorage.getItem('sc_proj');
+    const sc = localStorage.getItem('sc_carta');
+    if (sp) currentProjeto = JSON.parse(sp);
+    if (sc) currentCarta   = JSON.parse(sc);
+    ctxOk = !!(currentProjeto && currentCarta);
+    APM.log(`Contexto: proj="${currentProjeto?.nome || '—'}" carta="${currentCarta?.titulo || '—'}"`,
+      ctxOk ? 'ok' : 'warn');
+  } catch(e) {
+    APM.log(`Contexto: erro ao ler cache — ${e.message}`, 'err');
+  }
+
+  if (!ctxOk) {
+    APM.log('→ Seletor de projetos');
+    APM.report();
+    await afterAuth();
+    return;
+  }
+
+  // ── 4. Carregar dados da carta ─────────────────────────────────────────
+  APM.log('→ App principal');
+  document.getElementById('app').style.display = 'flex';
+  updateContextBar();
+  updateConfigInfo();
+
+  let loadOk = true;
+
+  const doneBib = APM.time('Carregar biblioteca');
+  try {
+    await loadBiblioteca();
+    doneBib('ok', `${biblioteca.length} vinhos`);
+  } catch(e) { doneBib('err', e.message); loadOk = false; }
+
+  const doneAval = APM.time('Carregar avaliações');
+  try {
+    await loadAvaliacoes();
+    doneAval('ok', `${avaliacoes.length} registros`);
+  } catch(e) { doneAval('err', e.message); loadOk = false; }
+
+  const doneCarta = APM.time('Carregar carta');
+  try {
+    await loadItensCarta();
+    doneCarta('ok', `${itensCartaLocal.length} itens`);
+  } catch(e) { doneCarta('err', e.message); loadOk = false; }
+
+  const doneCfg = APM.time('Carregar config');
+  try {
+    await loadConfig();
+    doneCfg('ok');
+  } catch(e) {
+    doneCfg('warn', 'usando padrão');
+    setDefaultConfig();
+  }
+
+  if (!loadOk) {
+    APM.log('Alguns dados falharam — usando cache local', 'warn');
+    loadFromCache();
+    if (!configLocal.ondas_ticket) setDefaultConfig();
+  }
+
+  calcAvgMarkup();
+  renderDashboard(); renderBiblioteca(); renderAvaliacoes(); renderCarta(); renderConfig();
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+
+  const total = Date.now() - APM._start;
+  APM.log(`App pronto em ${total}ms`, 'ok');
+  APM.report();
+
+  // Mostrar resumo no log visual após um momento
+  setTimeout(() => {
+    const el = document.getElementById('bootLogLines');
+    if (el) {
+      const div = document.createElement('div');
+      div.style.cssText = 'color:rgba(184,150,46,.5);font-size:10px;margin-top:4px;border-top:1px solid rgba(255,255,255,.08);padding-top:4px';
+      div.textContent = `Total: ${total}ms · ${APM._marks.length} eventos`;
+      el.appendChild(div);
+    }
+  }, 200);
+
 })();
 </script>
 </body>
