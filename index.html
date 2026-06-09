@@ -37,8 +37,8 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);overflow-x:hidden;transition:background .3s,color .3s}
 /* ═══ SPLASH ═══════════════════════════════════════════════════════════════ */
-#splash{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s}
-#splash.hide{opacity:0;pointer-events:none}
+#splash{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s}
+#splash.hide{opacity:0;pointer-events:none;display:none}
 .splash-logo{font-family:Georgia,serif;color:var(--gold);font-size:11px;letter-spacing:.35em;text-transform:uppercase;margin-bottom:8px;opacity:.7}
 .splash-title{font-family:Georgia,serif;color:#fff;font-size:28px;font-weight:700;text-align:center;line-height:1.2}
 .splash-sub{color:var(--gold);font-size:13px;margin-top:8px;font-style:italic;opacity:.8}
@@ -400,7 +400,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
 </head>
 <body>
 <!-- AUTH -->
-<div id="authScreen">
+<div id="authScreen" class="hide">
   <p class="auth-brand">SommCurator</p>
   <h1 class="auth-title">SommCurator</h1>
   <p class="auth-sub">Curadoria profissional de cartas de vinhos</p>
@@ -1110,7 +1110,7 @@ async function afterAuth() {
   document.getElementById('authScreen').classList.add('hide');
   document.getElementById('projectScreen').classList.remove('hide');
   const nome = currentUser?.user_metadata?.nome || currentUser?.email || 'Sommelier';
-  document.getElementById('proj-greeting').textContent = `Olá, ${nome.split(' ')[0]}`;
+  document.getElementById('proj-greeting').textContent = 'Olá, ' + nome.split(' ')[0];
   await loadProjetos();
 }
 async function loadProjetos() {
@@ -2424,112 +2424,101 @@ const bootLog = (msg, status) => APM.log(msg, status);
 // ═══ BOOT ═════════════════════════════════════════════════════════════════════
 applyTheme(localStorage.getItem(THEME_KEY) || 'light');
 
+// Helpers para mostrar/esconder telas de forma segura
+function showScreen(id) {
+  ['authScreen','projectScreen','splash'].forEach(s => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    if (s === id) el.classList.remove('hide');
+    else          el.classList.add('hide');
+  });
+}
+
 (async () => {
-  // Linha 1: imediato, sem nenhum await ainda
   APM.log('SommCurator iniciando');
-  APM.log(`Browser: ${navigator.userAgent.split(') ')[0].split('(')[1] || 'desconhecido'}`);
-  APM.log(`Online: ${navigator.onLine}`, navigator.onLine ? 'ok' : 'warn');
-  APM.log(`Host: ${location.hostname}${location.pathname}`);
-  APM.log(`Supabase: ${SUPA_URL.replace('https://','')}`);
+  APM.log('Online: ' + navigator.onLine, navigator.onLine ? 'ok' : 'warn');
+  APM.log('Host: ' + location.hostname + location.pathname);
+  APM.log('Supabase: ' + SUPA_URL.replace('https://',''));
 
-  const hasCachedSession = !!(localStorage.getItem('sc_at') && localStorage.getItem('sc_rt'));
-  const hasCachedContext = !!(localStorage.getItem('sc_proj') && localStorage.getItem('sc_carta'));
-  APM.log(`Cache: sessão=${hasCachedSession} contexto=${hasCachedContext}`);
+  const hasCachedTokens = !!(localStorage.getItem('sc_at') && localStorage.getItem('sc_rt'));
+  APM.log('Tokens em cache: ' + hasCachedTokens, hasCachedTokens ? 'ok' : 'warn');
 
-  // Pequena pausa para o log aparecer antes de qualquer fetch
-  await new Promise(r => setTimeout(r, 80));
+  // Pausa mínima para o log aparecer antes de qualquer fetch
+  await new Promise(r => setTimeout(r, 60));
 
-  // ── 1. Service Worker (não bloqueia o boot se falhar) ──────────────────
+  // ── SW: registrar sem bloquear o boot ─────────────────────────────────
   if ('serviceWorker' in navigator) {
-    // Não await — SW é progressivo, não bloqueia
-    const doneSwLog = APM.time('Service Worker');
     navigator.serviceWorker.register('./sw.js')
-      .then(reg  => { doneSwLog('ok', reg.active ? 'ativo' : 'instalando'); checkPendingSync(); })
-      .catch(err => { doneSwLog('warn', err.message); });
-  } else {
-    APM.log('Service Worker: não suportado neste browser', 'warn');
+      .then(reg  => APM.log('SW registrado: ' + reg.scope, 'ok'))
+      .catch(err => APM.log('SW falhou: ' + err.message, 'warn'));
   }
 
-  // ── 2. Sessão ──────────────────────────────────────────────────────────
-  const doneSession = APM.time('Verificar sessão');
+  // ── Sessão ────────────────────────────────────────────────────────────
+  APM.log('Verificando sessão…');
   let hasSession = false;
   try {
     hasSession = await restoreSession();
-    doneSession(hasSession ? 'ok' : 'warn', hasSession ? currentUser?.email : 'sem sessão');
   } catch(e) {
-    doneSession('err', e.message);
-    APM.log(`Sessão: erro inesperado — ${e.message}`, 'err');
+    APM.log('Erro na sessão: ' + e.message, 'err');
   }
 
-  // ── Mostrar a tela correta ─────────────────────────────────────────────
-  document.getElementById('splash').classList.add('hide');
-  APM.log('Splash ocultada — transição para tela principal');
+  APM.log('Sessão válida: ' + hasSession, hasSession ? 'ok' : 'warn');
 
+  // ── Transição de tela ─────────────────────────────────────────────────
   if (!hasSession || !currentUser) {
-    APM.log('→ Login', 'warn');
-    document.getElementById('authScreen').classList.remove('hide');
+    APM.log('→ Tela de login', 'warn');
+    showScreen('authScreen');
     APM.report();
     return;
   }
 
-  // ── 3. Contexto (projeto/carta) ────────────────────────────────────────
-  let ctxOk = false;
+  // ── Contexto salvo ────────────────────────────────────────────────────
   try {
     const sp = localStorage.getItem('sc_proj');
     const sc = localStorage.getItem('sc_carta');
     if (sp) currentProjeto = JSON.parse(sp);
     if (sc) currentCarta   = JSON.parse(sc);
-    ctxOk = !!(currentProjeto && currentCarta);
-    APM.log(`Contexto: proj="${currentProjeto?.nome || '—'}" carta="${currentCarta?.titulo || '—'}"`,
-      ctxOk ? 'ok' : 'warn');
   } catch(e) {
-    APM.log(`Contexto: erro ao ler cache — ${e.message}`, 'err');
+    APM.log('Erro no cache de contexto: ' + e.message, 'err');
   }
 
-  if (!ctxOk) {
+  APM.log('Projeto: ' + (currentProjeto?.nome || 'nenhum'), currentProjeto ? 'ok' : 'warn');
+  APM.log('Carta: '   + (currentCarta?.titulo  || 'nenhuma'), currentCarta   ? 'ok' : 'warn');
+
+  if (!currentProjeto || !currentCarta) {
     APM.log('→ Seletor de projetos');
-    APM.report();
+    showScreen('projectScreen');
     await afterAuth();
+    APM.report();
     return;
   }
 
-  // ── 4. Carregar dados da carta ─────────────────────────────────────────
+  // ── Carregar dados ────────────────────────────────────────────────────
   APM.log('→ App principal');
+  showScreen(null); // esconde splash/auth/project
   document.getElementById('app').style.display = 'flex';
   updateContextBar();
   updateConfigInfo();
 
-  let loadOk = true;
+  const doneBib = APM.time('Biblioteca');
+  try   { await loadBiblioteca();  doneBib('ok', biblioteca.length + ' vinhos'); }
+  catch(e) { doneBib('err', e.message); }
 
-  const doneBib = APM.time('Carregar biblioteca');
-  try {
-    await loadBiblioteca();
-    doneBib('ok', `${biblioteca.length} vinhos`);
-  } catch(e) { doneBib('err', e.message); loadOk = false; }
+  const doneAval = APM.time('Avaliações');
+  try   { await loadAvaliacoes();  doneAval('ok', avaliacoes.length + ' registros'); }
+  catch(e) { doneAval('err', e.message); }
 
-  const doneAval = APM.time('Carregar avaliações');
-  try {
-    await loadAvaliacoes();
-    doneAval('ok', `${avaliacoes.length} registros`);
-  } catch(e) { doneAval('err', e.message); loadOk = false; }
+  const doneCarta = APM.time('Carta');
+  try   { await loadItensCarta(); doneCarta('ok', itensCartaLocal.length + ' itens'); }
+  catch(e) { doneCarta('err', e.message); }
 
-  const doneCarta = APM.time('Carregar carta');
-  try {
-    await loadItensCarta();
-    doneCarta('ok', `${itensCartaLocal.length} itens`);
-  } catch(e) { doneCarta('err', e.message); loadOk = false; }
+  const doneCfg = APM.time('Config');
+  try   { await loadConfig(); doneCfg('ok'); }
+  catch(e) { doneCfg('warn', 'usando padrão'); setDefaultConfig(); }
 
-  const doneCfg = APM.time('Carregar config');
-  try {
-    await loadConfig();
-    doneCfg('ok');
-  } catch(e) {
-    doneCfg('warn', 'usando padrão');
-    setDefaultConfig();
-  }
-
-  if (!loadOk) {
-    APM.log('Alguns dados falharam — usando cache local', 'warn');
+  // Fallback cache se todos falharam
+  if (!biblioteca.length && !avaliacoes.length) {
+    APM.log('Usando cache local como fallback', 'warn');
     loadFromCache();
     if (!configLocal.ondas_ticket) setDefaultConfig();
   }
@@ -2539,19 +2528,17 @@ applyTheme(localStorage.getItem(THEME_KEY) || 'light');
   applyTheme(localStorage.getItem(THEME_KEY) || 'light');
 
   const total = Date.now() - APM._start;
-  APM.log(`App pronto em ${total}ms`, 'ok');
+  APM.log('App pronto em ' + total + 'ms', 'ok');
   APM.report();
 
-  // Mostrar resumo no log visual após um momento
   setTimeout(() => {
     const el = document.getElementById('bootLogLines');
-    if (el) {
-      const div = document.createElement('div');
-      div.style.cssText = 'color:rgba(184,150,46,.5);font-size:10px;margin-top:4px;border-top:1px solid rgba(255,255,255,.08);padding-top:4px';
-      div.textContent = `Total: ${total}ms · ${APM._marks.length} eventos`;
-      el.appendChild(div);
-    }
-  }, 200);
+    if (!el) return;
+    const div = document.createElement('div');
+    div.style.cssText = 'color:rgba(184,150,46,.4);font-size:10px;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:4px';
+    div.textContent   = 'Total: ' + total + 'ms · ' + APM._marks.length + ' eventos · APM.copy() para exportar';
+    el.appendChild(div);
+  }, 300);
 
 })();
 </script>
