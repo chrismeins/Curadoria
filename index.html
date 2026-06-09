@@ -435,6 +435,22 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
   <h1 class="splash-title">SommCurator</h1>
   <p class="splash-sub">Curadoria de Cartas de Vinhos</p>
   <div class="splash-bar"></div>
+  <!-- DEV BOOT LOG -->
+  <div id="bootLog" style="
+    position:absolute;bottom:0;left:0;right:0;
+    background:rgba(0,0,0,.55);
+    border-top:1px solid rgba(184,150,46,.15);
+    padding:10px 14px 12px;
+    font-family:'DM Mono',monospace, monospace;
+    font-size:11px;
+    max-height:160px;
+    overflow-y:auto;
+  ">
+    <div style="color:rgba(184,150,46,.6);font-size:9px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px">
+      ── DEV · Boot Log ──
+    </div>
+    <div id="bootLogLines"></div>
+  </div>
 </div>
 <!-- PROJECT SCREEN -->
 <div id="projectScreen" class="hide">
@@ -1184,13 +1200,31 @@ async function loadApp() {
   document.getElementById('app').style.display = 'flex';
   updateContextBar();
   updateConfigInfo();
+  bootLog('Conectando ao Supabase…');
   try {
-    await Promise.all([loadBiblioteca(), loadAvaliacoes(), loadItensCarta(), loadConfig()]);
+    bootLog('Carregando biblioteca global…');
+    await loadBiblioteca();
+    bootLog(`Biblioteca: ${biblioteca.length} vinhos`, 'ok');
+
+    bootLog('Carregando avaliações…');
+    await loadAvaliacoes();
+    bootLog(`Avaliações: ${avaliacoes.length} registros`, 'ok');
+
+    bootLog('Carregando itens da carta…');
+    await loadItensCarta();
+    bootLog(`Carta: ${itensCartaLocal.length} vinhos`, 'ok');
+
+    bootLog('Carregando configurações…');
+    await loadConfig();
+    bootLog('Configurações carregadas', 'ok');
+
+    bootLog('App pronto ✓', 'ok');
   } catch(e) {
-    console.warn(e);
-    toast('⚠️ Offline — usando cache', 3000);
+    bootLog(`Erro no carregamento: ${e.message}`, 'err');
+    bootLog('Tentando cache local…', 'warn');
     loadFromCache();
     if (!configLocal.ondas_ticket) setDefaultConfig();
+    bootLog('Cache local aplicado', 'warn');
   }
   calcAvgMarkup();
   renderDashboard(); renderBiblioteca(); renderAvaliacoes(); renderCarta();
@@ -2305,43 +2339,90 @@ document.getElementById('errorModal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeErrorModal();
 });
 
-// ═══ SERVICE WORKER REGISTRATION ═════════════════════════════════════════════
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => {
-        console.log('[App] SW registered:', reg.scope);
-        checkPendingSync();
-        // Request background sync when online
-        if ('SyncManager' in window) {
-          navigator.serviceWorker.ready.then(sw => sw.sync.register('sc-sync-pending').catch(() => {}));
-        }
-      })
-      .catch(err => console.warn('[App] SW registration failed:', err));
-  });
+// ═══ BOOT LOG (DEV) ══════════════════════════════════════════════════════════
+function bootLog(msg, status = 'info') {
+  const colors = { info:'rgba(255,255,255,.55)', ok:'#81C784', err:'#EF9A9A', warn:'#FFB74D' };
+  const icons  = { info:'·', ok:'✓', err:'✗', warn:'!' };
+  const el = document.getElementById('bootLogLines');
+  if (!el) return;
+  const line = document.createElement('div');
+  line.style.cssText = `color:${colors[status]};line-height:1.7;display:flex;gap:8px`;
+  const ts = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  line.innerHTML = `<span style="color:rgba(255,255,255,.25);flex-shrink:0">${ts}</span>`
+    + `<span style="color:${colors[status]};flex-shrink:0;width:10px">${icons[status]}</span>`
+    + `<span>${msg}</span>`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+  console.log(`[Boot] [${status.toUpperCase()}] ${msg}`);
 }
 
 // ═══ BOOT ═════════════════════════════════════════════════════════════════════
 applyTheme(localStorage.getItem(THEME_KEY) || 'light');
 
 (async () => {
-  await new Promise(r => setTimeout(r, 1200));
-  document.getElementById('splash').classList.add('hide');
+  bootLog('App iniciando…');
+  bootLog(`Ambiente: ${navigator.onLine ? 'online' : 'offline'}`, navigator.onLine ? 'ok' : 'warn');
+  bootLog(`Supabase: ${SUPA_URL.replace('https://','')}`);
+  bootLog(`Tema: ${localStorage.getItem(THEME_KEY) || 'light (padrão)'}`);
 
-  const hasSession = await restoreSession().catch(() => false);
+  await new Promise(r => setTimeout(r, 800));
+
+  // ── Service Worker ───────────────────────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    try {
+      bootLog('Registrando Service Worker…');
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      bootLog(`SW ativo: ${reg.scope}`, 'ok');
+      checkPendingSync();
+      if ('SyncManager' in window) {
+        navigator.serviceWorker.ready
+          .then(sw => sw.sync.register('sc-sync-pending').catch(() => {}));
+      }
+    } catch(e) {
+      bootLog(`SW não registrado: ${e.message}`, 'warn');
+    }
+  } else {
+    bootLog('Service Worker: não suportado', 'warn');
+  }
+
+  // ── Session ──────────────────────────────────────────────────────────────
+  bootLog('Verificando sessão salva…');
+  let hasSession = false;
+  try {
+    hasSession = await restoreSession();
+    if (hasSession && currentUser) {
+      bootLog(`Sessão ativa: ${currentUser.email}`, 'ok');
+    } else {
+      bootLog('Sem sessão válida — exibindo login', 'warn');
+    }
+  } catch(e) {
+    bootLog(`Erro na sessão: ${e.message}`, 'err');
+  }
+
   if (hasSession && currentUser) {
+    // ── Context ─────────────────────────────────────────────────────────────
     try {
       const sp = localStorage.getItem('sc_proj');
       const sc = localStorage.getItem('sc_carta');
-      if (sp) currentProjeto = JSON.parse(sp);
-      if (sc) currentCarta = JSON.parse(sc);
-    } catch(e) {}
+      if (sp) { currentProjeto = JSON.parse(sp); bootLog(`Projeto: "${currentProjeto?.nome}"`, 'ok'); }
+      else     { bootLog('Projeto: nenhum em cache'); }
+      if (sc) { currentCarta  = JSON.parse(sc);  bootLog(`Carta: "${currentCarta?.titulo}"`, 'ok'); }
+      else     { bootLog('Carta: nenhuma em cache'); }
+    } catch(e) {
+      bootLog(`Cache local: erro ao ler — ${e.message}`, 'err');
+    }
+
+    document.getElementById('splash').classList.add('hide');
+
     if (currentProjeto && currentCarta) {
+      bootLog('Carregando dados da carta…');
       loadApp();
     } else {
+      bootLog('Abrindo seletor de projetos…');
       await afterAuth();
     }
   } else {
+    document.getElementById('splash').classList.add('hide');
     document.getElementById('authScreen').classList.remove('hide');
   }
 })();
