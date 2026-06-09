@@ -434,6 +434,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
   <p class="splash-logo">SommCurator</p>
   <h1 class="splash-title">SommCurator</h1>
   <p class="splash-sub">Curadoria de Cartas de Vinhos</p>
+  <p style="color:rgba(184,150,46,.5);font-size:10px;margin-top:6px;letter-spacing:.15em">v2026.06.09-r4</p>
   <div class="splash-bar"></div>
   <!-- DEV BOOT LOG -->
   <div id="bootLog" style="
@@ -2435,7 +2436,7 @@ function showScreen(id) {
 }
 
 (async () => {
-  APM.log('SommCurator iniciando');
+  APM.log('SommCurator v2026.06.09-r4 iniciando');
   APM.log('Online: ' + navigator.onLine, navigator.onLine ? 'ok' : 'warn');
   APM.log('Host: ' + location.hostname + location.pathname);
   APM.log('Supabase: ' + SUPA_URL.replace('https://',''));
