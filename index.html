@@ -438,16 +438,20 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
   <!-- DEV BOOT LOG -->
   <div id="bootLog" style="
     position:absolute;bottom:0;left:0;right:0;
-    background:rgba(0,0,0,.55);
-    border-top:1px solid rgba(184,150,46,.15);
-    padding:10px 14px 12px;
-    font-family:'DM Mono',monospace, monospace;
+    background:rgba(0,0,0,.75);
+    border-top:1px solid rgba(184,150,46,.2);
+    padding:10px 14px 14px;
+    font-family:monospace;
     font-size:11px;
-    max-height:160px;
+    max-height:200px;
     overflow-y:auto;
   ">
-    <div style="color:rgba(184,150,46,.6);font-size:9px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px">
-      ── DEV · Boot Log ──
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span style="color:rgba(184,150,46,.6);font-size:9px;letter-spacing:.2em;text-transform:uppercase">── DEV · Boot Log ──</span>
+      <button onclick="document.getElementById('authScreen').classList.remove('hide');document.getElementById('splash').classList.add('hide')"
+        style="background:rgba(184,150,46,.15);border:1px solid rgba(184,150,46,.3);color:rgba(184,150,46,.8);font-size:10px;padding:3px 10px;border-radius:4px;cursor:pointer;font-family:monospace">
+        ir para login →
+      </button>
     </div>
     <div id="bootLogLines"></div>
   </div>
@@ -951,10 +955,11 @@ function authHdr() {
   return { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${accessToken || SUPA_KEY}`, 'Content-Type': 'application/json' };
 }
 async function sb(path, opts = {}) {
-  const res = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
-    ...opts,
-    headers: { ...authHdr(), 'Prefer': opts.prefer || 'return=representation', ...(opts.headers || {}) }
-  });
+  const res = await fetchWithTimeout(
+    `${SUPA_URL}/rest/v1/${path}`,
+    { ...opts, headers: { ...authHdr(), 'Prefer': opts.prefer || 'return=representation', ...(opts.headers || {}) } },
+    10000
+  );
   if (!res.ok) { const e = await res.text(); throw new Error(`${res.status}: ${e}`); }
   const t = await res.text(); return t ? JSON.parse(t) : null;
 }
@@ -998,11 +1003,21 @@ async function uploadPhoto(file, avalId) {
 }
 
 // ═══ AUTH ═════════════════════════════════════════════════════════════════════
+
+// Fetch com timeout — evita travamento indefinido em rede lenta ou bloqueada
+function fetchWithTimeout(url, opts = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...opts, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+}
+
 async function authCall(endpoint, body) {
-  const res = await fetch(`${SUPA_URL}/auth/v1/${endpoint}`, {
-    method: 'POST', headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  const res = await fetchWithTimeout(
+    `${SUPA_URL}/auth/v1/${endpoint}`,
+    { method: 'POST', headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+    8000
+  );
   if (!res.ok) { const e = await res.json(); throw new Error(e.error_description || e.msg || 'Erro'); }
   return res.json();
 }
@@ -1016,14 +1031,27 @@ function clearSession() {
   ['sc_at','sc_rt','sc_user','sc_proj','sc_carta'].forEach(k => localStorage.removeItem(k));
 }
 async function restoreSession() {
-  const at = localStorage.getItem('sc_at'), rt = localStorage.getItem('sc_rt'), u = localStorage.getItem('sc_user');
-  if (!at || !rt) return false;
+  const at = localStorage.getItem('sc_at');
+  const rt = localStorage.getItem('sc_rt');
+  const u  = localStorage.getItem('sc_user');
+
+  if (!at || !rt) {
+    bootLog('Sem tokens em localStorage');
+    return false;
+  }
+
+  bootLog('Tentando renovar token via refresh…');
   try {
     const s = await authCall('token?grant_type=refresh_token', { refresh_token: rt });
-    saveSession(s); return true;
+    saveSession(s);
+    bootLog('Token renovado com sucesso', 'ok');
+    return true;
   } catch(e) {
-    accessToken = at; refreshToken = rt;
-    currentUser = u ? JSON.parse(u) : null;
+    bootLog(`Refresh falhou (${e.message}) — usando token em cache`, 'warn');
+    // Usa token existente sem renovar (pode estar válido ainda)
+    accessToken  = at;
+    refreshToken = rt;
+    currentUser  = u ? JSON.parse(u) : null;
     return !!(accessToken && currentUser);
   }
 }
@@ -2364,8 +2392,9 @@ applyTheme(localStorage.getItem(THEME_KEY) || 'light');
   bootLog(`Ambiente: ${navigator.onLine ? 'online' : 'offline'}`, navigator.onLine ? 'ok' : 'warn');
   bootLog(`Supabase: ${SUPA_URL.replace('https://','')}`);
   bootLog(`Tema: ${localStorage.getItem(THEME_KEY) || 'light (padrão)'}`);
+  bootLog(`Cache local: at=${!!localStorage.getItem('sc_at')} proj=${!!localStorage.getItem('sc_proj')}`);
 
-  await new Promise(r => setTimeout(r, 800));
+  await new Promise(r => setTimeout(r, 100));
 
   // ── Service Worker ───────────────────────────────────────────────────────
   if ('serviceWorker' in navigator) {
