@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SommCurator — Curadoria que eleva</title>
+<meta name="description" content="A plataforma de curadoria profissional de cartas de vinhos. Feita para sommeliers que levam o trabalho a sério."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+:root {
+  --noir:#0D0C0A; --noir2:#161410; --noir3:#1E1C18;
+  --gold:#B8962E; --gold-l:#F5EDD6; --gold-d:#7A6018; --gold-m:#D4AF5A;
+  --cream:#EDE8DC; --text:#C8C4B8; --text2:#8A8478; --white:#F5F2EC;
+}
+html { scroll-behavior:smooth; }
+body { background:var(--noir); color:var(--text); font-family:'Inter',system-ui,sans-serif; font-size:15px; line-height:1.6; overflow-x:hidden; }
+
+/* FITA LATERAL */
+.fita { position:fixed; left:28px; top:0; width:1px; height:100vh; background:rgba(184,150,46,.1); z-index:10; pointer-events:none; }
+.fita-prog { position:absolute; top:0; left:0; width:1px; background:linear-gradient(to bottom, transparent 0%, var(--gold) 20%, var(--gold) 100%); height:0%; transition:height .08s linear; }
+@media(max-width:640px){ .fita{left:14px;} }
+
+/* NAV */
+nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:22px 56px; transition:background .4s, backdrop-filter .4s; }
+nav.scrolled { background:rgba(13,12,10,.9); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid rgba(184,150,46,.1); }
+.nav-logo { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:19px; font-weight:500; letter-spacing:.08em; text-decoration:none; }
+.nav-cta { font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); text-decoration:none; border:1px solid rgba(184,150,46,.4); padding:9px 22px; border-radius:2px; transition:all .2s; }
+.nav-cta:hover { background:rgba(184,150,46,.08); border-color:var(--gold); }
+@media(max-width:640px){ nav{padding:18px 24px;} .nav-cta{display:none;} }
+
+/* UTIL */
+.eye { font-family:'Inter',sans-serif; font-size:10px; font-weight:600; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); opacity:.7; }
+.hl { color:var(--white); }
+hr.rule { border:none; border-top:1px solid rgba(184,150,46,.12); margin:0; }
+.fade-in { opacity:0; transform:translateY(24px); transition:opacity .75s ease, transform .75s ease; }
+.fade-in.visible { opacity:1; transform:translateY(0); }
+@media(prefers-reduced-motion:reduce){ .fade-in{opacity:1;transform:none;transition:none;} .fita-prog{transition:none;} }
+
+/* HERO */
+.hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:120px 56px 80px 100px; position:relative; overflow:hidden; }
+.hero::before { content:''; position:absolute; top:-15%; right:-8%; width:700px; height:700px; background:radial-gradient(circle, rgba(184,150,46,.06) 0%, transparent 68%); pointer-events:none; }
+.hero-eye { margin-bottom:28px; }
+.hero-h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(42px,7vw,90px); font-weight:300; line-height:1.04; color:var(--white); letter-spacing:-.01em; max-width:860px; margin-bottom:32px; }
+.hero-h1 em { font-style:italic; color:var(--gold-m); }
+.hero-sub { font-size:16px; color:var(--text2); max-width:440px; line-height:1.75; margin-bottom:48px; font-weight:300; }
+.hero-cta { display:inline-flex; align-items:center; gap:12px; font-size:11px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(184,150,46,.3); padding-bottom:6px; transition:border-color .2s, gap .2s; }
+.hero-cta:hover { border-color:var(--gold); gap:18px; }
+@media(max-width:640px){ .hero{padding:100px 24px 60px 40px;} }
+
+/* STRIP */
+.intro-strip { background:var(--noir3); border-top:1px solid rgba(184,150,46,.1); border-bottom:1px solid rgba(184,150,46,.1); padding:48px 100px; display:grid; grid-template-columns:1fr 1px 1fr 1px 1fr; align-items:center; }
+.strip-div { width:1px; height:40px; background:rgba(184,150,46,.18); margin:0 auto; }
+.strip-n { font-family:'Cormorant Garamond',serif; font-size:50px; font-weight:300; color:var(--gold); line-height:1; }
+.strip-l { font-size:11px; color:var(--text2); letter-spacing:.12em; text-transform:uppercase; margin-top:5px; }
+.strip-item { text-align:center; padding:0 20px; }
+@media(max-width:640px){ .intro-strip{grid-template-columns:1fr;gap:28px;padding:36px 24px;} .strip-div{display:none;} }
+
+/* MANIFESTO */
+.manifesto { padding:120px 100px; max-width:860px; }
+.manifesto-q { font-family:'Cormorant Garamond',serif; font-size:clamp(24px,3vw,38px); font-weight:300; color:var(--white); line-height:1.35; margin-bottom:28px; font-style:italic; }
+.manifesto-p { font-size:15px; color:var(--text2); line-height:1.85; font-weight:300; margin-bottom:16px; max-width:560px; }
+@media(max-width:640px){ .manifesto{padding:80px 24px 80px 40px;} }
+
+/* FEATURES */
+.features { padding:0 100px 120px; }
+.feat-head { margin-bottom:48px; }
+.feat-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(184,150,46,.1); border:1px solid rgba(184,150,46,.1); }
+.feat-cell { background:var(--noir); padding:48px 44px; position:relative; transition:background .25s; }
+.feat-cell:hover { background:var(--noir2); }
+.feat-ico { font-size:24px; margin-bottom:20px; display:block; }
+.feat-t { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:500; color:var(--white); margin-bottom:10px; line-height:1.2; }
+.feat-p { font-size:13px; color:var(--text2); line-height:1.8; font-weight:300; }
+.feat-tag { position:absolute; top:22px; right:22px; font-size:9px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); opacity:.55; }
+@media(max-width:640px){ .features{padding:0 24px 80px 40px;} .feat-grid{grid-template-columns:1fr;} }
+
+/* FLUXO */
+.fluxo { padding:0 100px 120px; }
+.fluxo-head { margin-bottom:48px; }
+.fluxo-list { border-left:1px solid rgba(184,150,46,.15); margin-left:12px; }
+.fluxo-item { display:flex; gap:36px; padding:36px 0 36px 48px; border-bottom:1px solid rgba(184,150,46,.07); position:relative; }
+.fluxo-item:last-child { border-bottom:none; }
+.fluxo-item::before { content:''; position:absolute; left:-5px; top:46px; width:9px; height:9px; border-radius:50%; background:var(--noir); border:1.5px solid var(--gold); }
+.fluxo-n { font-family:'Cormorant Garamond',serif; font-size:40px; font-weight:300; color:rgba(184,150,46,.2); line-height:1; flex-shrink:0; padding-top:4px; width:30px; }
+.fluxo-t { font-family:'Cormorant Garamond',serif; font-size:21px; font-weight:500; color:var(--white); margin-bottom:7px; }
+.fluxo-p { font-size:13px; color:var(--text2); line-height:1.75; font-weight:300; }
+@media(max-width:640px){ .fluxo{padding:0 24px 80px 40px;} .fluxo-item{gap:20px;padding:28px 0 28px 32px;} }
+
+/* TESTEMUNHO */
+.testemunho { margin:0 100px 120px; background:var(--noir3); border:1px solid rgba(184,150,46,.15); border-left:3px solid var(--gold); padding:52px 60px; }
+.test-q { font-family:'Cormorant Garamond',serif; font-size:clamp(20px,2.5vw,28px); font-weight:300; font-style:italic; color:var(--white); line-height:1.55; margin-bottom:24px; }
+.test-attr { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); opacity:.65; }
+@media(max-width:640px){ .testemunho{margin:0 24px 80px 40px;padding:36px 28px;} }
+
+/* PARA QUEM */
+.paraquem { padding:0 100px 120px; }
+.paraquem-head { margin-bottom:48px; }
+.pq-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.pq-card { border:1px solid rgba(184,150,46,.13); padding:32px 28px; background:var(--noir2); border-radius:2px; transition:border-color .25s; }
+.pq-card:hover { border-color:rgba(184,150,46,.35); }
+.pq-ico { font-size:26px; margin-bottom:14px; display:block; }
+.pq-t { font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--white); margin-bottom:8px; }
+.pq-p { font-size:12px; color:var(--text2); line-height:1.75; font-weight:300; }
+@media(max-width:640px){ .paraquem{padding:0 24px 80px 40px;} .pq-grid{grid-template-columns:1fr;} }
+
+/* CTA FINAL */
+.cta-final { padding:140px 56px; text-align:center; position:relative; overflow:hidden; }
+.cta-final::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(184,150,46,.06) 0%, transparent 70%); pointer-events:none; }
+.cta-h { font-family:'Cormorant Garamond',serif; font-size:clamp(32px,5vw,64px); font-weight:300; color:var(--white); line-height:1.12; margin-bottom:16px; }
+.cta-h em { font-style:italic; color:var(--gold-m); }
+.cta-sub { font-size:14px; color:var(--text2); margin-bottom:48px; font-weight:300; }
+.cta-form { display:flex; gap:10px; justify-content:center; max-width:440px; margin:0 auto; }
+.cta-input { flex:1; padding:14px 18px; background:rgba(255,255,255,.05); border:1px solid rgba(184,150,46,.3); color:var(--white); font-size:14px; outline:none; font-family:'Inter',sans-serif; border-radius:2px; transition:border-color .2s; }
+.cta-input:focus { border-color:var(--gold); }
+.cta-input::placeholder { color:var(--text2); }
+.cta-btn { padding:14px 28px; background:var(--gold); color:var(--noir); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; border:none; cursor:pointer; font-family:'Inter',sans-serif; border-radius:2px; transition:background .2s; white-space:nowrap; }
+.cta-btn:hover { background:var(--gold-m); }
+.cta-btn:disabled { opacity:.45; cursor:default; }
+.cta-ok { color:var(--gold); font-size:14px; margin-top:18px; font-family:'Cormorant Garamond',serif; font-style:italic; display:none; }
+.cta-note { font-size:11px; color:var(--text2); opacity:.5; margin-top:14px; }
+@media(max-width:640px){ .cta-final{padding:100px 24px 100px 40px;} .cta-form{flex-direction:column;} .cta-btn{width:100%;} }
+
+/* FOOTER */
+footer { border-top:1px solid rgba(184,150,46,.1); padding:32px 100px; display:flex; align-items:center; justify-content:space-between; }
+.ft-logo { font-family:'Cormorant Garamond',serif; color:var(--gold); font-size:15px; opacity:.5; }
+.ft-note { font-size:11px; color:var(--text2); opacity:.4; }
+@media(max-width:640px){ footer{padding:28px 24px; flex-direction:column; gap:10px; text-align:center;} }
+</style>
+</head>
+<body>
+
+<div class="fita"><div class="fita-prog" id="fitaProg"></div></div>
+
+<nav id="mainNav">
+  <a href="#" class="nav-logo">SommCurator</a>
+  <a href="#interesse" class="nav-cta">Quero conhecer</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="eye hero-eye fade-in">A plataforma de curadoria</p>
+  <h1 class="hero-h1 fade-in">
+    Os melhores sommeliers<br>
+    do mundo não <em>improvisam.</em><br>
+    Eles curadoria.
+  </h1>
+  <p class="hero-sub fade-in">SommCurator é a primeira plataforma construída exclusivamente para o profissional que transforma conhecimento técnico em uma carta de vinhos inesquecível.</p>
+  <a href="#interesse" class="hero-cta fade-in">Solicitar acesso antecipado</a>
+</section>
+
+<hr class="rule"/>
+
+<!-- STRIP -->
+<div class="intro-strip fade-in">
+  <div class="strip-item">
+    <div class="strip-n">500+</div>
+    <div class="strip-l">Vinhos no catálogo global</div>
+  </div>
+  <div class="strip-div"></div>
+  <div class="strip-item">
+    <div class="strip-n">15<span style="font-size:24px">s</span></div>
+    <div class="strip-l">Para registrar uma avaliação</div>
+  </div>
+  <div class="strip-div"></div>
+  <div class="strip-item">
+    <div class="strip-n">100%</div>
+    <div class="strip-l">Focado no sommelier</div>
+  </div>
+</div>
+
+<hr class="rule"/>
+
+<!-- MANIFESTO -->
+<section class="manifesto fade-in">
+  <p class="eye" style="margin-bottom:20px">Por que existe</p>
+  <p class="manifesto-q">"Toda ferramenta de gestão de vinhos foi construída para importadoras, distribuidoras ou consumidores finais. Nenhuma foi feita para você."</p>
+  <p class="manifesto-p">O sommelier profissional vive entre duas exigências opostas: a excelência técnica que o mercado reconhece e a velocidade operacional que o restaurante demanda. Avaliar vinhos em papel, montar cartas em planilha, perder o histórico de uma degustação num celular trocado — isso não é falta de disciplina. É ausência de ferramenta adequada.</p>
+  <p class="manifesto-p">SommCurator foi construído para preencher esse vazio. Não como um atalho para quem não sabe, mas como um instrumento à altura de quem sabe demais para continuar usando o que existe.</p>
+</section>
+
+<hr class="rule"/>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="feat-head fade-in">
+    <p class="eye" style="margin-bottom:12px">O que você tem nas mãos</p>
+    <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(24px,3vw,36px);font-weight:300;color:var(--white);max-width:540px;line-height:1.3">Cada funcionalidade foi desenhada a partir de como sommeliers realmente trabalham.</p>
+  </div>
+  <div class="feat-grid">
+
+    <div class="feat-cell fade-in">
+      <span class="feat-ico">🍷</span>
+      <div class="feat-t">Avaliação em 3 etapas</div>
+      <p class="feat-p">Identificação com autocomplete do catálogo global, avaliação sensorial com harmonizações e notas livres, análise comercial com markup calculado automaticamente. Tudo numa ficha única, no celular, durante a prova.</p>
+      <span class="feat-tag">Captura</span>
+    </div>
+
+    <div class="feat-cell fade-in">
+      <span class="feat-ico">⚡</span>
+      <div class="feat-t">Registro rápido</div>
+      <p class="feat-p">Provou doze garrafas num almoço? Registre nome, tipo e nota de cada uma em segundos. A ficha completa fica para depois. O histórico, você não perde.</p>
+      <span class="feat-tag">Velocidade</span>
+    </div>
+
+    <div class="feat-cell fade-in">
+      <span class="feat-ico">📚</span>
+      <div class="feat-t">Catálogo global</div>
+      <p class="feat-p">Mais de 500 vinhos verificados disponíveis no autocomplete. Digite "Baro" e veja Barolo, Barossa, Baron de Brane aparecerem com produtor, região e tipo já preenchidos. Você decide, não digita.</p>
+      <span class="feat-tag">Biblioteca</span>
+    </div>
+
+    <div class="feat-cell fade-in">
+      <span class="feat-ico">📊</span>
+      <div class="feat-t">Análise ABC e estilos</div>
+      <p class="feat-p">Classifique cada aprovado como alto giro, médio ou nicho. Acompanhe a distribuição por tipo de vinho e compare com as metas da carta. O painel mostra o que está equilibrado e o que precisa de atenção.</p>
+      <span class="feat-tag">Estratégia</span>
+    </div>
+
+    <div class="feat-cell fade-in">
+      <span class="feat-ico">🍽️</span>
+      <div class="feat-t">Montagem de carta</div>
+      <p class="feat-p">Adicione aprovados à carta com preço de venda. O sistema sugere o valor com base no markup médio real dos seus vinhos. Visualize a carta organizada por tipo, com ticket médio e markup por seção.</p>
+      <span class="feat-tag">Curadoria</span>
+    </div>
+
+    <div class="feat-cell fade-in">
+      <span class="feat-ico">📄</span>
+      <div class="feat-t">PDF e backup</div>
+      <p class="feat-p">Gere o PDF da carta — ou o relatório completo com todos os avaliados — para apresentar à gerência, ao chef ou à diretoria. Seus dados também podem ser exportados e importados a qualquer momento.</p>
+      <span class="feat-tag">Entrega</span>
+    </div>
+
+  </div>
+</section>
+
+<hr class="rule"/>
+
+<!-- FLUXO -->
+<section class="fluxo fade-in">
+  <div class="fluxo-head">
+    <p class="eye" style="margin-bottom:12px">Como funciona no dia a dia</p>
+    <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(22px,2.8vw,34px);font-weight:300;color:var(--white);max-width:480px;line-height:1.3">Do primeiro gole à carta na mesa do cliente.</p>
+  </div>
+  <div class="fluxo-list">
+
+    <div class="fluxo-item">
+      <div class="fluxo-n">I</div>
+      <div>
+        <div class="fluxo-t">Prova e registra, onde estiver</div>
+        <p class="fluxo-p">No salão, num evento, na adega do fornecedor. O app funciona no celular, mesmo offline. A avaliação completa ou o registro rápido ficam salvos imediatamente.</p>
+      </div>
+    </div>
+
+    <div class="fluxo-item">
+      <div class="fluxo-n">II</div>
+      <div>
+        <div class="fluxo-t">Decide com critério</div>
+        <p class="fluxo-p">Aprova, reprova ou deixa pendente. Veja todo o histórico de avaliações com filtros por status, tipo e classe ABC. O que foi decidido fica registrado — inclusive o motivo da reprovação.</p>
+      </div>
+    </div>
+
+    <div class="fluxo-item">
+      <div class="fluxo-n">III</div>
+      <div>
+        <div class="fluxo-t">Monta a carta com inteligência</div>
+        <p class="fluxo-p">Adicione os aprovados à carta com preço de venda. Acompanhe o equilíbrio por tipo, o markup médio e o ticket médio em tempo real. O painel alerta quando algum estilo está abaixo da meta.</p>
+      </div>
+    </div>
+
+    <div class="fluxo-item">
+      <div class="fluxo-n">IV</div>
+      <div>
+        <div class="fluxo-t">Apresenta com autoridade</div>
+        <p class="fluxo-p">Exporte o PDF da carta ou o relatório completo de avaliações. Uma conversa com a gerência fundamentada em dados e critério técnico tem um peso diferente de uma conversa fundamentada em opinião.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="rule"/>
+
+<!-- TESTEMUNHO -->
+<div class="testemunho fade-in">
+  <p class="test-q">"Nunca tive uma ferramenta que me ajudasse a organizar o raciocínio por trás da carta. Sempre foi na memória, no papel, no grupo de WhatsApp. O SommCurator mudou como eu apresento meu trabalho para a gestão do restaurante."</p>
+  <p class="test-attr">Sommelier · Fine Dining · São Paulo</p>
+</div>
+
+<hr class="rule"/>
+
+<!-- PARA QUEM -->
+<section class="paraquem">
+  <div class="paraquem-head fade-in">
+    <p class="eye" style="margin-bottom:12px">Para quem é</p>
+    <p style="font-family:'Cormorant Garamond',serif;font-size:clamp(22px,2.8vw,34px);font-weight:300;color:var(--white);max-width:500px;line-height:1.3">Qualquer sommelier profissional que leva a curadoria a sério.</p>
+  </div>
+  <div class="pq-grid">
+    <div class="pq-card fade-in">
+      <span class="pq-ico">🍽️</span>
+      <div class="pq-t">Fine Dining</div>
+      <p class="pq-p">Cartas extensas, público exigente, gestão de markup rigorosa. O SommCurator dá o controle analítico que uma operação dessa complexidade exige.</p>
+    </div>
+    <div class="pq-card fade-in">
+      <span class="pq-ico">🏨</span>
+      <div class="pq-t">Hotéis e Resorts</div>
+      <p class="pq-p">Múltiplos pontos de venda, cartas por outlet, relatórios para diretoria. Gerencie tudo num único lugar com projetos separados por operação.</p>
+    </div>
+    <div class="pq-card fade-in">
+      <span class="pq-ico">🎯</span>
+      <div class="pq-t">Consultores</div>
+      <p class="pq-p">Vários clientes, histórico que não pode se perder entre contratos. Cada projeto é independente e seu — com backup completo a qualquer momento.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule"/>
+
+<!-- CTA FINAL -->
+<section class="cta-final" id="interesse">
+  <p class="eye fade-in" style="margin-bottom:20px">Acesso antecipado</p>
+  <h2 class="cta-h fade-in">
+    Seu trabalho merece<br>
+    <em>uma ferramenta à sua altura.</em>
+  </h2>
+  <p class="cta-sub fade-in">Deixe seu contato. Você será um dos primeiros a conhecer o SommCurator.</p>
+  <form class="cta-form fade-in" id="ctaForm" onsubmit="submitInteresse(event)">
+    <input class="cta-input" id="ctaEmail" type="email" placeholder="Seu e-mail profissional" autocomplete="email" required/>
+    <button class="cta-btn" id="ctaBtn" type="submit">Quero acesso</button>
+  </form>
+  <p class="cta-ok" id="ctaOk">Recebemos seu interesse. Entraremos em contato em breve.</p>
+  <p class="cta-note fade-in">Sem spam. Sem compromisso. Só o essencial.</p>
+</section>
+
+<footer>
+  <span class="ft-logo">SommCurator</span>
+  <span class="ft-note">Plataforma de curadoria profissional de cartas de vinhos</span>
+</footer>
+
+<script>
+'use strict';
+
+// Fita de progresso
+window.addEventListener('scroll', function() {
+  var doc = document.documentElement;
+  var pct = (doc.scrollTop || document.body.scrollTop) / ((doc.scrollHeight || document.body.scrollHeight) - doc.clientHeight) * 100;
+  document.getElementById('fitaProg').style.height = Math.min(pct, 100) + '%';
+
+  var nav = document.getElementById('mainNav');
+  nav.classList.toggle('scrolled', (doc.scrollTop || document.body.scrollTop) > 60);
+});
+
+// Fade-in por scroll
+var obs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.fade-in').forEach(function(el) { obs.observe(el); });
+
+// CTA
+function submitInteresse(e) {
+  e.preventDefault();
+  var email = document.getElementById('ctaEmail').value.trim();
+  if (!email) return;
+  var btn = document.getElementById('ctaBtn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  // Abre o cliente de email com o interesse pre-preenchido
+  var mailto = 'mailto:contato@sommcurator.com.br'
+    + '?subject=' + encodeURIComponent('Interesse - SommCurator')
+    + '&body=' + encodeURIComponent('Olá,\n\nGostaria de conhecer o SommCurator.\n\nE-mail: ' + email + '\n');
+  window.location.href = mailto;
+
+  // Mostra confirmacao apos 1s
+  setTimeout(function() {
+    document.getElementById('ctaForm').style.display = 'none';
+    document.getElementById('ctaOk').style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Quero acesso';
+  }, 1000);
+}
+
+// Stagger nas feat-cells
+document.querySelectorAll('.feat-cell').forEach(function(el, i) {
+  el.style.transitionDelay = (i * 80) + 'ms';
+});
+</script>
+</body>
+</html>
