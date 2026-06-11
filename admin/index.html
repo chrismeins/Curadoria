@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SommCurator · Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: ['attribute', '[data-theme="dark"]'],
+  theme: { extend: {
+    colors: { navy:{DEFAULT:'#1A1A2E',2:'#16213E',3:'#0F3460'}, gold:{DEFAULT:'#B8962E',l:'#F5EDD6',d:'#8B6914'} },
+    fontFamily: { serif:['Georgia','serif'] }
+  } }
+}
+</script>
+<style>
+  :root { --gold:#B8962E; --gold-l:#F5EDD6; --gold-d:#8B6914; --navy:#1A1A2E; --navy2:#16213E; --navy3:#0F3460; }
+  [data-theme="dark"] { --gold:#C9A84C; --gold-l:#2A2010; --gold-d:#E8C060; }
+  * { box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:#F8F6F0; color:#1A1A1A; margin:0; }
+  [data-theme="dark"] body { background:#0D0D0D; color:#F0EDE8; }
+  .hide { display:none !important; }
+
+  .sidebar { background:var(--navy); min-height:100vh; width:240px; flex-shrink:0; display:flex; flex-direction:column; }
+  .sidebar-logo { font-family:Georgia,serif; color:var(--gold); font-size:22px; font-weight:700; padding:24px 20px 4px; }
+  .sidebar-badge { display:inline-block; background:rgba(184,150,46,.15); color:var(--gold); font-size:9px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; padding:3px 8px; border-radius:6px; margin:0 20px 14px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:11px 20px; cursor:pointer; color:rgba(255,255,255,.5); font-size:13px; font-weight:500; transition:all .18s; border-left:3px solid transparent; }
+  .nav-item:hover { background:rgba(255,255,255,.05); color:#fff; }
+  .nav-item.active { background:rgba(184,150,46,.12); color:var(--gold); border-left-color:var(--gold); }
+  .nav-icon { font-size:16px; width:20px; text-align:center; }
+  .nav-badge { margin-left:auto; background:var(--gold); color:var(--navy); font-size:10px; font-weight:700; padding:1px 7px; border-radius:10px; }
+
+  .kpi-card { background:#fff; border-radius:12px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,.08); border:1px solid #E8E5E0; }
+  [data-theme="dark"] .kpi-card { background:#1E1E1E; border-color:#333; }
+  .kpi-val { font-size:32px; font-weight:700; line-height:1; color:var(--navy); }
+  [data-theme="dark"] .kpi-val { color:var(--gold); }
+  .kpi-label { font-size:11px; color:#6B6B6B; text-transform:uppercase; letter-spacing:.1em; margin-top:4px; }
+
+  .section-header { border-left:4px solid var(--gold); padding-left:12px; margin-bottom:16px; }
+  .section-title { font-family:Georgia,serif; font-size:18px; font-weight:700; color:var(--navy); }
+  [data-theme="dark"] .section-title { color:var(--gold); }
+  .section-sub { font-size:12px; color:#888; margin-top:2px; }
+
+  .data-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .data-table th { background:var(--navy); color:#fff; padding:10px 12px; text-align:left; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  .data-table td { padding:10px 12px; border-bottom:1px solid #EEE; }
+  [data-theme="dark"] .data-table td { border-color:#2A2A2A; }
+  .data-table tr:hover td { background:rgba(184,150,46,.04); }
+
+  .tag { font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px; white-space:nowrap; }
+  .tag-pend { background:#FFF3E0; color:#E65100; }
+  .tag-ok   { background:#E8F5E9; color:#1B5E20; }
+  .tag-dup  { background:#FFEBEE; color:#B71C1C; }
+  .tag-tipo { background:var(--navy2); color:var(--gold); }
+
+  .btn { padding:7px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; border:1.5px solid transparent; font-family:inherit; }
+  .btn-approve { background:#E8F5E9; color:#1B5E20; border-color:#1B5E20; }
+  .btn-edit    { background:var(--gold-l); color:var(--gold-d); border-color:var(--gold); }
+  .btn-reject  { background:#FFEBEE; color:#B71C1C; border-color:#B71C1C; }
+  .btn-primary { background:linear-gradient(135deg,var(--navy3),var(--navy)); color:var(--gold); border-color:var(--gold-d); padding:11px 20px; }
+  .btn:disabled { opacity:.45; cursor:default; }
+
+  .auth-input { width:100%; padding:12px 14px; background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.12); border-radius:8px; color:#fff; font-size:14px; outline:none; margin-bottom:12px; }
+  .auth-input:focus { border-color:var(--gold); }
+  .auth-input::placeholder { color:rgba(255,255,255,.3); }
+
+  .modal-bk { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .modal { background:#fff; border-radius:12px; width:100%; max-width:540px; max-height:90vh; overflow-y:auto; }
+  [data-theme="dark"] .modal { background:#1E1E1E; }
+  .fld { margin-bottom:12px; }
+  .fld label { display:block; font-size:11px; font-weight:700; color:#6B6B6B; text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+  .fld input, .fld select { width:100%; padding:9px 12px; border:1.5px solid #DDD; border-radius:8px; font-size:13px; outline:none; background:#fff; color:#1A1A1A; }
+  [data-theme="dark"] .fld input, [data-theme="dark"] .fld select { background:#2A2A2A; border-color:#444; color:#F0EDE8; }
+  .fld input:focus, .fld select:focus { border-color:var(--gold); }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px); background:var(--navy); color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; opacity:0; transition:all .25s; z-index:200; border:1px solid var(--gold-d); pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authOverlay" style="position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:50;padding:24px">
+  <div style="width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-family:Georgia,serif;color:var(--gold);font-size:28px;font-weight:700">SommCurator</div>
+      <div style="color:rgba(255,255,255,.4);font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-top:4px">Painel Administrativo</div>
+    </div>
+    <div style="background:rgba(255,255,255,.06);border:1px solid rgba(184,150,46,.25);border-radius:12px;padding:28px 24px">
+      <form id="loginForm" onsubmit="event.preventDefault();doLogin()">
+        <input class="auth-input" id="auth-email" type="email" placeholder="E-mail de admin" autocomplete="email"/>
+        <input class="auth-input" id="auth-password" type="password" placeholder="Senha" autocomplete="current-password"/>
+        <button class="btn btn-primary" id="loginBtn" type="submit" style="width:100%;justify-content:center">Entrar</button>
+      </form>
+      <div id="authError" style="color:#EF9A9A;font-size:12px;margin-top:10px;text-align:center;min-height:16px"></div>
+    </div>
+    <p style="color:rgba(255,255,255,.2);font-size:10px;text-align:center;margin-top:16px;letter-spacing:.1em">v2026.06.11-admin-r1</p>
+  </div>
+</div>
+
+<!-- ACCESS DENIED (logado mas nao-admin) -->
+<div id="denyOverlay" class="hide" style="position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:50;padding:24px">
+  <div style="text-align:center;max-width:360px">
+    <div style="font-size:48px;margin-bottom:12px">🔒</div>
+    <div style="font-family:Georgia,serif;color:#fff;font-size:22px;font-weight:700;margin-bottom:8px">Acesso restrito</div>
+    <p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.5;margin-bottom:20px">Esta conta nao tem permissao de administrador. O painel administrativo e exclusivo para moderadores da plataforma.</p>
+    <button class="btn btn-primary" onclick="doSignOut()">Sair</button>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell" class="hide" style="display:flex;min-height:100vh">
+  <aside class="sidebar">
+    <div class="sidebar-logo">SommCurator</div>
+    <span class="sidebar-badge">Admin</span>
+    <nav style="flex:1">
+      <div class="nav-item active" id="nav-overview" onclick="showPage('overview')"><span class="nav-icon">📊</span>Visao Geral</div>
+      <div class="nav-item" id="nav-moderacao" onclick="showPage('moderacao')"><span class="nav-icon">🔍</span>Moderacao<span class="nav-badge hide" id="modBadge">0</span></div>
+      <div class="nav-item" id="nav-catalogo" onclick="showPage('catalogo')"><span class="nav-icon">📚</span>Catalogo Verificado</div>
+    </nav>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)">
+      <div id="sidebar-user" style="color:rgba(255,255,255,.5);font-size:11px;margin-bottom:8px;word-break:break-all"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="toggleTheme()" style="background:rgba(255,255,255,.08);border:none;color:var(--gold);width:30px;height:30px;border-radius:6px;cursor:pointer">◐</button>
+        <button onclick="doSignOut()" style="flex:1;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);padding:7px;border-radius:6px;cursor:pointer;font-size:12px">Sair</button>
+      </div>
+    </div>
+  </aside>
+
+  <main style="flex:1;padding:28px 32px;overflow-y:auto;max-height:100vh">
+
+    <!-- OVERVIEW -->
+    <section id="page-overview">
+      <div class="section-header"><div class="section-title">Visao Geral da Plataforma</div><div class="section-sub">Metricas globais do catalogo e da base</div></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px">
+        <div class="kpi-card"><div class="kpi-val" id="kVerificados">—</div><div class="kpi-label">Verificados</div></div>
+        <div class="kpi-card"><div class="kpi-val" id="kPendentes" style="color:#E65100">—</div><div class="kpi-label">Aguardando moderacao</div></div>
+        <div class="kpi-card"><div class="kpi-val" id="kTotal">—</div><div class="kpi-label">Total no catalogo</div></div>
+        <div class="kpi-card"><div class="kpi-val" id="kDuplicatas" style="color:#B71C1C">—</div><div class="kpi-label">Possiveis duplicatas</div></div>
+      </div>
+      <div class="kpi-card">
+        <div style="font-weight:700;font-size:13px;margin-bottom:12px;color:var(--navy)">Distribuicao por Tipo (verificados)</div>
+        <div id="tipoDistrib"></div>
+      </div>
+    </section>
+
+    <!-- MODERACAO -->
+    <section id="page-moderacao" class="hide">
+      <div class="section-header"><div class="section-title">Fila de Moderacao</div><div class="section-sub">Vinhos cadastrados em campo, aguardando verificacao</div></div>
+      <div id="modContent"><div style="text-align:center;padding:40px;color:#888">Carregando...</div></div>
+    </section>
+
+    <!-- CATALOGO -->
+    <section id="page-catalogo" class="hide">
+      <div class="section-header"><div class="section-title">Catalogo Verificado</div><div class="section-sub">Vinhos publicos disponiveis a todos os sommeliers</div></div>
+      <div style="margin-bottom:14px"><input id="catSearch" oninput="renderCatalogo()" placeholder="Buscar no catalogo..." style="width:100%;max-width:360px;padding:9px 14px;border:1.5px solid #DDD;border-radius:8px;font-size:13px;outline:none"/></div>
+      <div id="catContent"><div style="text-align:center;padding:40px;color:#888">Carregando...</div></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-bk hide">
+  <div class="modal">
+    <div style="background:var(--navy);padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-radius:12px 12px 0 0">
+      <span style="color:#fff;font-weight:700;font-family:Georgia,serif;font-size:16px" id="editTitle">Editar Vinho</span>
+      <button onclick="closeEdit()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer">✕</button>
+    </div>
+    <div style="padding:22px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fld" style="grid-column:1/3"><label>Nome *</label><input id="eNome"/></div>
+        <div class="fld"><label>Produtor *</label><input id="eProdutor"/></div>
+        <div class="fld"><label>Pais *</label><input id="ePais"/></div>
+        <div class="fld"><label>Regiao</label><input id="eRegiao"/></div>
+        <div class="fld"><label>Tipo *</label><select id="eTipo"><option>Espumante</option><option>Branco</option><option>Rosé</option><option>Tinto</option><option>Sobremesa</option><option>Fortificado</option></select></div>
+        <div class="fld"><label>Uva predominante</label><input id="eUva"/></div>
+        <div class="fld"><label>Importadora</label><input id="eImportadora"/></div>
+        <div class="fld" style="grid-column:1/3"><label>Safra referencia</label><input id="eSafra"/></div>
+      </div>
+      <input type="hidden" id="eId"/>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-approve" id="eSaveApprove" onclick="saveEdit(true)" style="flex:1;justify-content:center">Salvar e Aprovar</button>
+        <button class="btn btn-edit" onclick="saveEdit(false)" style="flex:1;justify-content:center">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// CONFIG
+var SUPA = 'https://fvwlfoksplfwfcbnenwj.supabase.co';
+var KEY  = 'sb_publishable_ieNBktIwKGsCIwJSTGYPgQ__ypJn13L';
+var token = null, refresh = null, user = null;
+var pendentes = [], verificados = [], duplicatas = [];
+
+// NETWORK
+function fwt(url, opts, ms) {
+  var c = new AbortController();
+  var t = setTimeout(function(){ c.abort(); }, ms || 10000);
+  opts = opts || {}; opts.signal = c.signal;
+  return fetch(url, opts).finally(function(){ clearTimeout(t); });
+}
+function hdr() { return { 'apikey': KEY, 'Authorization': 'Bearer ' + (token || KEY), 'Content-Type': 'application/json' }; }
+function sb(path, opts) {
+  opts = opts || {};
+  var h = hdr(); h['Prefer'] = opts.prefer || 'return=representation';
+  if (opts.headers) Object.assign(h, opts.headers);
+  return fwt(SUPA + '/rest/v1/' + path, { method: opts.method || 'GET', headers: h, body: opts.body }, 10000)
+    .then(function(r){ if (!r.ok) return r.text().then(function(t){ throw new Error(r.status + ': ' + t); }); return r.text().then(function(t){ return t ? JSON.parse(t) : null; }); });
+}
+function sbGet(t, q) { return sb(t + '?' + (q || '')); }
+function sbPatch(t, id, b) { return sb(t + '?id=eq.' + id, { method:'PATCH', body: JSON.stringify(b) }); }
+function sbDel(t, q) { return sb(t + '?' + q, { method:'DELETE', prefer:'' }); }
+
+function authCall(ep, body) {
+  return fwt(SUPA + '/auth/v1/' + ep, { method:'POST', headers:{ 'apikey':KEY, 'Content-Type':'application/json' }, body: JSON.stringify(body) }, 8000)
+    .then(function(r){ if (!r.ok) return r.json().then(function(e){ throw new Error(e.error_description || e.msg || 'Erro'); }); return r.json(); });
+}
+
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+function setErr(m) { document.getElementById('authError').textContent = m; }
+
+// AUTH + ADMIN GATE
+function saveSession(s) {
+  token = s.access_token; refresh = s.refresh_token; user = s.user;
+  localStorage.setItem('sca_at', token); localStorage.setItem('sca_rt', refresh);
+  localStorage.setItem('sca_user', JSON.stringify(user));
+}
+function doLogin() {
+  var email = document.getElementById('auth-email').value.trim();
+  var pass = document.getElementById('auth-password').value;
+  if (!email || !pass) { setErr('Preencha email e senha'); return; }
+  var btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  authCall('token?grant_type=password', { email: email, password: pass })
+    .then(function(s){ saveSession(s); return checkAdminAndEnter(); })
+    .catch(function(e){ setErr(e.message); })
+    .finally(function(){ btn.disabled = false; btn.textContent = 'Entrar'; });
+}
+function doSignOut() {
+  ['sca_at','sca_rt','sca_user'].forEach(function(k){ localStorage.removeItem(k); });
+  token = null; user = null;
+  document.getElementById('appShell').classList.add('hide');
+  document.getElementById('denyOverlay').classList.add('hide');
+  document.getElementById('authOverlay').classList.remove('hide');
+}
+function restoreSession() {
+  var at = localStorage.getItem('sca_at'), rt = localStorage.getItem('sca_rt'), u = localStorage.getItem('sca_user');
+  if (!at || !rt) return Promise.resolve(false);
+  return authCall('token?grant_type=refresh_token', { refresh_token: rt })
+    .then(function(s){ saveSession(s); return true; })
+    .catch(function(){ token = at; refresh = rt; try { user = u ? JSON.parse(u) : null; } catch(e){ user = null; } return !!(token && user); });
+}
+
+// O gate de admin: chama a funcao sc_is_admin() via RPC.
+// A seguranca real esta no RLS (Fase 2) — esta checagem e so para a UI.
+function checkAdminAndEnter() {
+  return fwt(SUPA + '/rest/v1/rpc/sc_is_admin', {
+    method: 'POST',
+    headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: '{}'
+  }, 8000)
+    .then(function(r){ return r.ok ? r.json() : false; })
+    .then(function(isAdmin) {
+      if (isAdmin === true) {
+        document.getElementById('authOverlay').classList.add('hide');
+        document.getElementById('denyOverlay').classList.add('hide');
+        document.getElementById('appShell').classList.remove('hide');
+        document.getElementById('sidebar-user').textContent = user ? user.email : '';
+        return loadAll();
+      }
+      // Nao-admin: mostra tela de acesso restrito
+      document.getElementById('authOverlay').classList.add('hide');
+      document.getElementById('appShell').classList.add('hide');
+      document.getElementById('denyOverlay').classList.remove('hide');
+    })
+    .catch(function() {
+      // Falha de rede/RPC: nega por seguranca
+      document.getElementById('authOverlay').classList.add('hide');
+      document.getElementById('denyOverlay').classList.remove('hide');
+    });
+}
+
+// THEME
+function toggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme');
+  var next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('sca_theme', next);
+}
+
+// NAV
+function showPage(p) {
+  ['overview','moderacao','catalogo'].forEach(function(x) {
+    document.getElementById('nav-' + x).classList.toggle('active', x === p);
+    document.getElementById('page-' + x).classList.toggle('hide', x !== p);
+  });
+  if (p === 'moderacao') renderModeracao();
+  if (p === 'catalogo') renderCatalogo();
+}
+
+// DATA
+function loadAll() {
+  return Promise.all([
+    sbGet('sc_biblioteca', 'select=*&verificado=eq.false&order=created_at.desc').then(function(r){ pendentes = r || []; }),
+    sbGet('sc_biblioteca', 'select=*&verificado=eq.true&order=nome.asc').then(function(r){ verificados = r || []; })
+  ]).then(function() {
+    detectDuplicatas();
+    renderOverview();
+    var b = document.getElementById('modBadge');
+    if (pendentes.length) { b.textContent = pendentes.length; b.classList.remove('hide'); }
+    else b.classList.add('hide');
+  });
+}
+
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
+
+// Deteccao de possiveis duplicatas: nome normalizado igual entre pendente e verificado,
+// ou entre dois pendentes
+function detectDuplicatas() {
+  duplicatas = [];
+  var todos = pendentes.concat(verificados);
+  pendentes.forEach(function(p) {
+    var matches = todos.filter(function(x) {
+      return x.id !== p.id && norm(x.nome) === norm(p.nome);
+    });
+    if (matches.length) {
+      duplicatas.push({ pendente: p, similares: matches });
+    }
+  });
+}
+
+// OVERVIEW
+function renderOverview() {
+  document.getElementById('kVerificados').textContent = verificados.length;
+  document.getElementById('kPendentes').textContent = pendentes.length;
+  document.getElementById('kTotal').textContent = verificados.length + pendentes.length;
+  document.getElementById('kDuplicatas').textContent = duplicatas.length;
+
+  var tipos = ['Espumante','Branco','Rosé','Tinto','Sobremesa','Fortificado'];
+  var max = 1;
+  var counts = tipos.map(function(t) {
+    var n = verificados.filter(function(v){ return v.tipo === t; }).length;
+    if (n > max) max = n;
+    return { t: t, n: n };
+  });
+  document.getElementById('tipoDistrib').innerHTML = counts.map(function(c) {
+    var w = Math.round(c.n / max * 100);
+    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px">' +
+      '<span style="width:90px;font-size:12px;color:#666">' + c.t + '</span>' +
+      '<div style="flex:1;height:18px;background:#F0EDE8;border-radius:4px;overflow:hidden"><div style="height:100%;width:' + w + '%;background:linear-gradient(90deg,var(--navy3),var(--gold));border-radius:4px"></div></div>' +
+      '<span style="width:30px;text-align:right;font-size:12px;font-weight:700">' + c.n + '</span></div>';
+  }).join('');
+}
+
+// MODERACAO
+function renderModeracao() {
+  var el = document.getElementById('modContent');
+  if (!pendentes.length) {
+    el.innerHTML = '<div style="text-align:center;padding:48px;color:#888"><div style="font-size:40px;margin-bottom:10px">✓</div>' +
+      '<div style="font-size:15px;font-weight:600;color:#1B5E20">Fila vazia</div>' +
+      '<div style="font-size:12px;margin-top:4px">Nenhum vinho aguardando moderacao.</div></div>';
+    return;
+  }
+  var dupIds = {};
+  duplicatas.forEach(function(d){ dupIds[d.pendente.id] = d.similares; });
+
+  el.innerHTML = '<table class="data-table"><thead><tr>' +
+    '<th>Vinho</th><th>Produtor</th><th>Origem</th><th>Tipo</th><th>Status</th><th style="text-align:right">Acoes</th>' +
+    '</tr></thead><tbody>' +
+    pendentes.map(function(p) {
+      var dup = dupIds[p.id];
+      return '<tr>' +
+        '<td><div style="font-weight:700">' + esc(p.nome) + '</div>' + (p.uva_predominante ? '<div style="font-size:11px;color:#888">' + esc(p.uva_predominante) + '</div>' : '') + '</td>' +
+        '<td>' + esc(p.produtor || '—') + '</td>' +
+        '<td>' + [p.pais, p.regiao].filter(Boolean).map(esc).join(' · ') + '</td>' +
+        '<td><span class="tag tag-tipo">' + esc(p.tipo) + '</span></td>' +
+        '<td>' + (dup ? '<span class="tag tag-dup" title="Possivel duplicata de: ' + dup.map(function(x){return esc(x.nome);}).join(', ') + '">Duplicata?</span>' : '<span class="tag tag-pend">Pendente</span>') + '</td>' +
+        '<td style="text-align:right;white-space:nowrap">' +
+        '<button class="btn btn-approve" onclick="approve(\'' + p.id + '\')">Aprovar</button> ' +
+        '<button class="btn btn-edit" onclick="openEdit(\'' + p.id + '\')">Editar</button> ' +
+        '<button class="btn btn-reject" onclick="reject(\'' + p.id + '\')">Excluir</button>' +
+        '</td></tr>';
+    }).join('') + '</tbody></table>';
+}
+
+function approve(id) {
+  sbPatch('sc_biblioteca', id, { verificado: true })
+    .then(function(){ return loadAll(); })
+    .then(function(){ renderModeracao(); toast('Aprovado no catalogo'); })
+    .catch(function(e){ toast('Erro: ' + e.message); });
+}
+
+function reject(id) {
+  var v = pendentes.find(function(x){ return x.id === id; });
+  if (!confirm('Excluir "' + (v ? v.nome : '') + '" definitivamente?\n\nIsto remove o vinho do catalogo. Avaliacoes que o referenciam ficam com o vinculo nulo (a avaliacao em si nao e apagada).')) return;
+  sbDel('sc_biblioteca', 'id=eq.' + id)
+    .then(function(){ return loadAll(); })
+    .then(function(){ renderModeracao(); toast('Excluido'); })
+    .catch(function(e){ toast('Erro: ' + e.message); });
+}
+
+// EDIT
+function openEdit(id) {
+  var v = pendentes.concat(verificados).find(function(x){ return x.id === id; });
+  if (!v) return;
+  document.getElementById('eId').value = v.id;
+  document.getElementById('eNome').value = v.nome || '';
+  document.getElementById('eProdutor').value = v.produtor || '';
+  document.getElementById('ePais').value = v.pais || '';
+  document.getElementById('eRegiao').value = v.regiao || '';
+  document.getElementById('eTipo').value = v.tipo || 'Tinto';
+  document.getElementById('eUva').value = v.uva_predominante || '';
+  document.getElementById('eImportadora').value = v.importadora || '';
+  document.getElementById('eSafra').value = v.safra_referencia || '';
+  document.getElementById('editTitle').textContent = v.verificado ? 'Editar (verificado)' : 'Editar e moderar';
+  document.getElementById('eSaveApprove').classList.toggle('hide', v.verificado === true);
+  document.getElementById('editModal').classList.remove('hide');
+}
+function closeEdit() { document.getElementById('editModal').classList.add('hide'); }
+
+function saveEdit(approveToo) {
+  var id = document.getElementById('eId').value;
+  var nome = document.getElementById('eNome').value.trim();
+  var produtor = document.getElementById('eProdutor').value.trim();
+  var pais = document.getElementById('ePais').value.trim();
+  if (!nome || !produtor || !pais) { toast('Nome, produtor e pais sao obrigatorios'); return; }
+  var payload = {
+    nome: nome, produtor: produtor, pais: pais,
+    regiao: document.getElementById('eRegiao').value.trim() || null,
+    tipo: document.getElementById('eTipo').value,
+    uva_predominante: document.getElementById('eUva').value.trim() || null,
+    importadora: document.getElementById('eImportadora').value.trim() || null,
+    safra_referencia: document.getElementById('eSafra').value.trim() || null
+  };
+  if (approveToo) payload.verificado = true;
+  sbPatch('sc_biblioteca', id, payload)
+    .then(function(){ return loadAll(); })
+    .then(function() {
+      closeEdit();
+      renderModeracao(); renderCatalogo();
+      toast(approveToo ? 'Salvo e aprovado' : 'Salvo');
+    })
+    .catch(function(e){ toast('Erro: ' + e.message); });
+}
+
+// CATALOGO
+function renderCatalogo() {
+  var el = document.getElementById('catContent');
+  var q = (document.getElementById('catSearch').value || '').toLowerCase();
+  var list = verificados.filter(function(v) {
+    if (!q) return true;
+    return (v.nome + ' ' + (v.produtor||'') + ' ' + (v.pais||'')).toLowerCase().indexOf(q) >= 0;
+  });
+  if (!list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:#888">Nenhum vinho verificado' + (q ? ' para "' + esc(q) + '"' : '') + '.</div>';
+    return;
+  }
+  el.innerHTML = '<table class="data-table"><thead><tr>' +
+    '<th>Vinho</th><th>Produtor</th><th>Origem</th><th>Tipo</th><th style="text-align:right">Acoes</th>' +
+    '</tr></thead><tbody>' +
+    list.slice(0, 200).map(function(v) {
+      return '<tr>' +
+        '<td><div style="font-weight:700">' + esc(v.nome) + '</div></td>' +
+        '<td>' + esc(v.produtor || '—') + '</td>' +
+        '<td>' + [v.pais, v.regiao].filter(Boolean).map(esc).join(' · ') + '</td>' +
+        '<td><span class="tag tag-tipo">' + esc(v.tipo) + '</span></td>' +
+        '<td style="text-align:right"><button class="btn btn-edit" onclick="openEdit(\'' + v.id + '\')">Editar</button></td>' +
+        '</tr>';
+    }).join('') + '</tbody></table>' +
+    (list.length > 200 ? '<div style="text-align:center;padding:12px;color:#888;font-size:12px">Mostrando 200 de ' + list.length + '. Use a busca para refinar.</div>' : '');
+}
+
+// BOOT
+(function() {
+  var t = localStorage.getItem('sca_theme');
+  if (t) document.documentElement.setAttribute('data-theme', t);
+  restoreSession()
+    .then(function(ok) {
+      if (ok && user) return checkAdminAndEnter();
+      document.getElementById('authOverlay').classList.remove('hide');
+    })
+    .catch(function() {
+      document.getElementById('authOverlay').classList.remove('hide');
+    });
+})();
+
+</script>
+</body>
+</html>
