@@ -335,7 +335,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
   <p class="sp-logo">SommCurator</p>
   <h1 class="sp-title">SommCurator</h1>
   <p class="sp-sub">Curadoria de Cartas de Vinhos</p>
-  <p class="sp-ver">v2026.06.11-r1</p>
+  <p class="sp-ver">v2026.06.11-r2</p>
   <div class="sp-bar"></div>
 </div>
 
@@ -368,7 +368,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
     </form>
     <div class="au-err" id="authErr"></div>
   </div>
-  <p class="au-ver">v2026.06.11-r1</p>
+  <p class="au-ver">v2026.06.11-r2</p>
 </div>
 
 <!-- PROJECT SELECTOR -->
@@ -524,7 +524,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
       <button class="btn btn-s" onclick="goProjects()">Trocar Projeto / Carta</button>
       <button class="btn btn-d" onclick="doSignOut()">Sair da conta</button>
       <div class="divider" style="margin-top:20px"></div>
-      <p class="muted tc">SommCurator v2026.06.11-r1</p>
+      <p class="muted tc">SommCurator v2026.06.11-r2</p>
     </div>
   </div>
 
@@ -812,7 +812,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
 var SUPA = 'https://fvwlfoksplfwfcbnenwj.supabase.co';
 var KEY  = 'sb_publishable_ieNBktIwKGsCIwJSTGYPgQ__ypJn13L';
 var BUCKET = 'diana-wines';
-var VERSION = 'v2026.06.11-r1';
+var VERSION = 'v2026.06.11-r2';
 
 var user = null, token = null, refresh = null;
 var projetos = [], cartas = [];
@@ -1994,8 +1994,10 @@ function addMkPreview() {
 
 function saveAdd() {
   var avalId = document.getElementById('addAvalId').value;
+  if (!carta || !carta.id) { toast('Nenhuma carta ativa'); return; }
   var btn = document.getElementById('btnAdd');
   btn.disabled = true; btn.textContent = 'Adicionando...';
+
   sbPost('sc_itens_carta', {
     carta_id: carta.id,
     avaliacao_id: avalId,
@@ -2011,8 +2013,20 @@ function saveAdd() {
     toast('Adicionado a carta');
   })
   .catch(function(e) {
-    var msg = (e.message || '').indexOf('23505') >= 0 ? new Error('Este vinho ja esta na carta') : e;
-    showError('Adicionar a Carta', msg);
+    var raw = e.message || '';
+    if (raw.indexOf('23505') >= 0) {
+      showError('Adicionar a Carta', new Error('Este vinho ja esta na carta'));
+    } else if (raw.indexOf('23503') >= 0) {
+      // FK violation: carta nao existe mais no banco. Cache desatualizado.
+      localStorage.removeItem('sc_proj');
+      localStorage.removeItem('sc_carta');
+      closeDrw('drwAdd'); closeDrw('drwDetail');
+      toast('A carta selecionada nao existe mais. Selecione novamente.', 4000);
+      projeto = null; carta = null;
+      afterAuth();
+    } else {
+      showError('Adicionar a Carta', e);
+    }
   })
   .finally(function(){ btn.disabled = false; btn.textContent = 'Adicionar a Carta'; });
 }
@@ -2197,18 +2211,39 @@ setTimeout(function() {
   restoreSession()
     .then(function(ok) {
       if (!ok || !user) { showScreen('authScreen'); return; }
+      var sp = null, sc = null;
       try {
-        var sp = localStorage.getItem('sc_proj');
-        var sc = localStorage.getItem('sc_carta');
+        sp = localStorage.getItem('sc_proj');
+        sc = localStorage.getItem('sc_carta');
         if (sp) projeto = JSON.parse(sp);
         if (sc) carta = JSON.parse(sc);
       } catch(e) { projeto = null; carta = null; }
-      if (projeto && carta) {
-        showScreen(null);
-        loadAll();
-      } else {
-        afterAuth();
-      }
+
+      if (!projeto || !carta) { afterAuth(); return; }
+
+      // Valida que a carta em cache ainda existe no banco
+      return sbGet('sc_cartas', 'select=id,titulo,tipo,projeto_id&id=eq.' + carta.id + '&ativa=eq.true')
+        .then(function(rows) {
+          if (rows && rows.length) {
+            // Atualiza com dados frescos do banco
+            carta = rows[0];
+            localStorage.setItem('sc_carta', JSON.stringify(carta));
+            showScreen(null);
+            loadAll();
+          } else {
+            // Carta nao existe mais — limpa cache e volta ao seletor
+            localStorage.removeItem('sc_proj');
+            localStorage.removeItem('sc_carta');
+            projeto = null; carta = null;
+            toast('Carta nao encontrada. Selecione novamente.');
+            afterAuth();
+          }
+        })
+        .catch(function() {
+          // Erro de rede: confia no cache (modo offline)
+          showScreen(null);
+          loadAll();
+        });
     })
     .catch(function(e) {
       console.warn('boot:', e.message);
