@@ -335,7 +335,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
   <p class="sp-logo">SommCurator</p>
   <h1 class="sp-title">SommCurator</h1>
   <p class="sp-sub">Curadoria de Cartas de Vinhos</p>
-  <p class="sp-ver">v2026.06.11-r2</p>
+  <p class="sp-ver">v2026.06.11-r3</p>
   <div class="sp-bar"></div>
 </div>
 
@@ -368,7 +368,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
     </form>
     <div class="au-err" id="authErr"></div>
   </div>
-  <p class="au-ver">v2026.06.11-r2</p>
+  <p class="au-ver">v2026.06.11-r3</p>
 </div>
 
 <!-- PROJECT SELECTOR -->
@@ -524,7 +524,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
       <button class="btn btn-s" onclick="goProjects()">Trocar Projeto / Carta</button>
       <button class="btn btn-d" onclick="doSignOut()">Sair da conta</button>
       <div class="divider" style="margin-top:20px"></div>
-      <p class="muted tc">SommCurator v2026.06.11-r2</p>
+      <p class="muted tc">SommCurator v2026.06.11-r3</p>
     </div>
   </div>
 
@@ -601,6 +601,11 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
           <div class="tgl-r"><div><div class="tgl-l">On-Trade Exclusivo</div><div class="tgl-s">Nao disponivel no varejo</div></div>
             <label class="tgl"><input type="checkbox" id="fOntrade"/><span class="tgl-sl"></span></label>
           </div>
+        </div>
+        <div class="fg">
+          <div class="fl">Observacoes</div>
+          <textarea class="fta" id="fObservacoes" placeholder="Enologo, lembrete, contexto da prova, quem indicou..."></textarea>
+          <div class="fhint">Memoria livre - diferente das notas sensoriais</div>
         </div>
         <button class="btn btn-p" onclick="goStep(1)">Avaliacao &#8594;</button>
       </div>
@@ -812,7 +817,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
 var SUPA = 'https://fvwlfoksplfwfcbnenwj.supabase.co';
 var KEY  = 'sb_publishable_ieNBktIwKGsCIwJSTGYPgQ__ypJn13L';
 var BUCKET = 'diana-wines';
-var VERSION = 'v2026.06.11-r2';
+var VERSION = 'v2026.06.11-r3';
 
 var user = null, token = null, refresh = null;
 var projetos = [], cartas = [];
@@ -1162,7 +1167,7 @@ function loadAll() {
 }
 
 function loadBib() {
-  return sbGet('sc_biblioteca', 'select=*&verificado=eq.true&order=nome.asc&limit=500')
+  return sbGet('sc_biblioteca', 'select=*&or=(verificado.eq.true,criado_por.eq.' + user.id + ')&order=nome.asc&limit=500')
     .then(function(r){ biblioteca = r || []; });
 }
 
@@ -1492,6 +1497,7 @@ function openAvalDet(id) {
     (inC ? '<span class="tag ic">Na Carta</span>' : '') + '</div>' +
     '<div class="dt-grid">' + cells + '</div>' +
     (a.notas_degustacao ? '<div class="dt-notes">' + esc(a.notas_degustacao) + '</div>' : '') +
+    (a.observacoes ? '<div class="dt-notes" style="font-style:normal;color:var(--text2)"><strong style="color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.08em">Observacoes</strong><br>' + esc(a.observacoes) + '</div>' : '') +
     ((a.harmonizacao||[]).length ? '<div class="dt-notes" style="font-style:normal;color:var(--teal)">' + a.harmonizacao.map(esc).join(' - ') + '</div>' : '') +
     '<div class="dt-acts">' +
     '<div class="dt-a ed" onclick="closeDrw(\'drwDetail\');openEdit(\'' + id + '\')">Editar</div>' +
@@ -1588,7 +1594,7 @@ function rmItem(id) {
    13. FORMULARIO DE AVALIACAO
 ============================================================ */
 function clearForm() {
-  ['fNome','fProdutor','fImportadora','fContato','fRegiao','fUvas','fSafra','fNotas','fFonte','fPont','fPLista','fPCusto','fPaisOutro'].forEach(function(id) {
+  ['fNome','fProdutor','fImportadora','fContato','fRegiao','fUvas','fSafra','fNotas','fObservacoes','fFonte','fPont','fPLista','fPCusto','fPaisOutro'].forEach(function(id) {
     var el = document.getElementById(id); if (el) el.value = '';
   });
   document.getElementById('fNome').removeAttribute('data-vid');
@@ -1655,7 +1661,7 @@ function openEdit(id) {
   document.getElementById('fId').value = id;
   document.getElementById('fVinhoId').value = a.vinho_id || '';
   var map = { fNome:'vinho_nome', fProdutor:'vinho_produtor', fRegiao:'vinho_regiao', fUvas:'vinho_uva',
-    fSafra:'vinho_safra', fNotas:'notas_degustacao', fFonte:'fonte_critico', fPont:'pontuacao_critico',
+    fSafra:'vinho_safra', fNotas:'notas_degustacao', fObservacoes:'observacoes', fFonte:'fonte_critico', fPont:'pontuacao_critico',
     fContato:'contato_importadora', fImportadora:'importadora', fPLista:'preco_lista', fPCusto:'preco_custo' };
   Object.keys(map).forEach(function(fid) {
     var el = document.getElementById(fid);
@@ -1808,45 +1814,75 @@ function saveAval() {
   var paisV = document.getElementById('fPais').value;
   var pais = paisV === 'Outro' ? (document.getElementById('fPaisOutro').value.trim() || 'Outro') : paisV;
 
-  var payload = {
-    user_id: user.id,
-    vinho_id: document.getElementById('fVinhoId').value || document.getElementById('fNome').getAttribute('data-vid') || null,
-    vinho_nome: nome,
-    vinho_produtor: document.getElementById('fProdutor').value.trim() || null,
-    vinho_pais: pais || null,
-    vinho_regiao: document.getElementById('fRegiao').value.trim() || null,
-    vinho_uva: document.getElementById('fUvas').value.trim() || null,
-    vinho_safra: document.getElementById('fSafra').value.trim() || null,
-    vinho_tipo: document.getElementById('fTipo').value || null,
-    vinho_formato: document.getElementById('fFormato').value || null,
-    vinho_ocasiao: document.getElementById('fOcasiao').value || null,
-    importadora: document.getElementById('fImportadora').value.trim() || null,
-    contato_importadora: document.getElementById('fContato').value.trim() || null,
-    ontrade_exclusivo: document.getElementById('fOntrade').checked,
-    pontuacao_critico: parseInt(document.getElementById('fPont').value) || null,
-    fonte_critico: document.getElementById('fFonte').value.trim() || null,
-    nota_sommelier: nota,
-    notas_degustacao: document.getElementById('fNotas').value.trim() || null,
-    harmonizacao: getChips('#chipsHarm', 'sel-h'),
-    data_prova: document.getElementById('fData').value || null,
-    preco_lista: parseFloat(document.getElementById('fPLista').value) || null,
-    preco_custo: parseFloat(document.getElementById('fPCusto').value) || null,
-    abc_projetado: abc,
-    status_avaliacao: status,
-    pontos_negativos: getChips('#chipsNeg', 'sel-n')
-  };
+  var existingVid = document.getElementById('fVinhoId').value
+    || document.getElementById('fNome').getAttribute('data-vid')
+    || null;
 
-  var chain;
-  var savedId = editId;
-  if (editId) {
-    chain = sbPatch('sc_avaliacoes_privadas', editId, payload);
-  } else {
-    chain = sbPost('sc_avaliacoes_privadas', payload).then(function(res) {
-      savedId = (Array.isArray(res) ? res[0] : res).id;
-    });
+  var produtor = document.getElementById('fProdutor').value.trim() || null;
+  var regiao   = document.getElementById('fRegiao').value.trim() || null;
+  var uva      = document.getElementById('fUvas').value.trim() || null;
+  var tipo     = document.getElementById('fTipo').value || null;
+  var importadora = document.getElementById('fImportadora').value.trim() || null;
+  var safra    = document.getElementById('fSafra').value.trim() || null;
+
+  function buildPayload(vinhoId) {
+    return {
+      user_id: user.id,
+      vinho_id: vinhoId,
+      vinho_nome: nome,
+      vinho_produtor: produtor,
+      vinho_pais: pais || null,
+      vinho_regiao: regiao,
+      vinho_uva: uva,
+      vinho_safra: safra,
+      vinho_tipo: tipo,
+      vinho_formato: document.getElementById('fFormato').value || null,
+      vinho_ocasiao: document.getElementById('fOcasiao').value || null,
+      importadora: importadora,
+      contato_importadora: document.getElementById('fContato').value.trim() || null,
+      ontrade_exclusivo: document.getElementById('fOntrade').checked,
+      pontuacao_critico: parseInt(document.getElementById('fPont').value) || null,
+      fonte_critico: document.getElementById('fFonte').value.trim() || null,
+      nota_sommelier: nota,
+      notas_degustacao: document.getElementById('fNotas').value.trim() || null,
+      observacoes: document.getElementById('fObservacoes').value.trim() || null,
+      harmonizacao: getChips('#chipsHarm', 'sel-h'),
+      data_prova: document.getElementById('fData').value || null,
+      preco_lista: parseFloat(document.getElementById('fPLista').value) || null,
+      preco_custo: parseFloat(document.getElementById('fPCusto').value) || null,
+      abc_projetado: abc,
+      status_avaliacao: status,
+      pontos_negativos: getChips('#chipsNeg', 'sel-n')
+    };
   }
 
-  chain
+  // Cadastro de campo: se o vinho e novo (sem vinho_id) e tem dados minimos
+  // para o catalogo (nome, produtor, pais, tipo validos), cria o registro
+  // global como NAO-verificado, vinculado ao criador. Entra na moderacao depois.
+  function resolveVinhoId() {
+    if (existingVid) return Promise.resolve(existingVid);
+    if (!editId && produtor && pais && tipo) {
+      return sbPost('sc_biblioteca', {
+        nome: nome, produtor: produtor, pais: pais, regiao: regiao,
+        tipo: tipo, uva_predominante: uva, importadora: importadora,
+        safra_referencia: safra, verificado: false, criado_por: user.id
+      })
+      .then(function(res){ return (Array.isArray(res) ? res[0] : res).id; })
+      .catch(function(){ return null; }); // se falhar, segue como avaliacao avulsa
+    }
+    return Promise.resolve(null);
+  }
+
+  var savedId = editId;
+
+  resolveVinhoId()
+    .then(function(vinhoId) {
+      var payload = buildPayload(vinhoId);
+      if (editId) return sbPatch('sc_avaliacoes_privadas', editId, payload);
+      return sbPost('sc_avaliacoes_privadas', payload).then(function(res) {
+        savedId = (Array.isArray(res) ? res[0] : res).id;
+      });
+    })
     .then(function() {
       if (photo && savedId) {
         return uploadPhoto(photo, savedId).then(function(url) {
@@ -1854,9 +1890,10 @@ function saveAval() {
         });
       }
     })
+    .then(function(){ return loadBib(); })
     .then(function(){ return loadAval(); })
     .then(function() {
-      renderAval(); renderDash();
+      renderAval(); renderDash(); renderBib();
       closeDrw('drwAval');
       toast(editId ? 'Atualizado' : 'Avaliacao salva');
     })
@@ -1919,20 +1956,21 @@ function acSearch(q) {
   if (!q || q.length < 2) { dd.style.display = 'none'; return; }
   acTimer = setTimeout(function() {
     var enc = encodeURIComponent(q);
-    sb('sc_biblioteca?select=id,nome,produtor,pais,regiao,tipo,uva_predominante,importadora&verificado=eq.true&or=(nome.ilike.*' + enc + '*,produtor.ilike.*' + enc + '*)&order=nome.asc&limit=10')
+    sb('sc_biblioteca?select=id,nome,produtor,pais,regiao,tipo,uva_predominante,importadora,verificado,criado_por&and=(or(verificado.eq.true,criado_por.eq.' + user.id + '),or(nome.ilike.*' + enc + '*,produtor.ilike.*' + enc + '*))&order=nome.asc&limit=10')
       .then(function(rows) {
         var hint = document.getElementById('acHint');
         if (!rows || !rows.length) {
           dd.innerHTML = '<div class="acc" onclick="acClose()">Criar "' + esc(q) + '" como novo rotulo</div>';
           dd.style.display = 'block';
-          hint.textContent = 'Novo rotulo - sera adicionado a biblioteca';
+          hint.textContent = 'Novo rotulo - sera adicionado a biblioteca (aguardando verificacao)';
           hint.style.color = 'var(--amber)';
           document.getElementById('fNome').removeAttribute('data-vid');
           return;
         }
         dd.innerHTML = rows.map(function(r) {
+          var meu = !r.verificado ? '<span class="tag" style="background:var(--amber-l);color:var(--amber);margin-left:6px;font-size:8px">SEU CADASTRO</span>' : '';
           return '<div class="aci" data-id="' + r.id + '">' +
-            '<div class="aci-n">' + esc(r.nome) + '</div>' +
+            '<div class="aci-n">' + esc(r.nome) + meu + '</div>' +
             '<div class="aci-s">' + [r.produtor, r.pais, r.tipo].filter(Boolean).map(esc).join(' - ') + '</div></div>';
         }).join('') + '<div class="acc" onclick="acClose()">Usar "' + esc(q) + '" como novo rotulo</div>';
         dd.style.display = 'block';
@@ -1941,7 +1979,7 @@ function acSearch(q) {
           item.addEventListener('click', function() {
             var b = biblioteca.find(function(x){ return x.id === item.getAttribute('data-id'); });
             if (!b) {
-              // pode nao estar na lista local; busca dos resultados
+              // pode nao estar na lista local (ex: nao-verificado); usa o resultado da busca
               b = rows.find(function(x){ return x.id === item.getAttribute('data-id'); });
             }
             if (b) fillFromBib(b);
