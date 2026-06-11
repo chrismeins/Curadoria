@@ -96,7 +96,7 @@ tailwind.config = {
       </form>
       <div id="authError" style="color:#EF9A9A;font-size:12px;margin-top:10px;text-align:center;min-height:16px"></div>
     </div>
-    <p style="color:rgba(255,255,255,.2);font-size:10px;text-align:center;margin-top:16px;letter-spacing:.1em">v2026.06.11-admin-r1</p>
+    <p style="color:rgba(255,255,255,.2);font-size:10px;text-align:center;margin-top:16px;letter-spacing:.1em">v2026.06.11-admin-r2</p>
   </div>
 </div>
 
@@ -185,6 +185,23 @@ tailwind.config = {
         <button class="btn btn-approve" id="eSaveApprove" onclick="saveEdit(true)" style="flex:1;justify-content:center">Salvar e Aprovar</button>
         <button class="btn btn-edit" onclick="saveEdit(false)" style="flex:1;justify-content:center">Salvar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MERGE MODAL -->
+<div id="mergeModal" class="modal-bk hide">
+  <div class="modal">
+    <div style="background:#E65100;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-radius:12px 12px 0 0">
+      <span style="color:#fff;font-weight:700;font-family:Georgia,serif;font-size:16px">Mesclar Duplicata</span>
+      <button onclick="closeMerge()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer">✕</button>
+    </div>
+    <div style="padding:22px">
+      <p style="font-size:12px;color:#888;margin:0 0 16px;line-height:1.5">Escolha qual registro <strong>permanece</strong> (canonico). O outro sera eliminado e suas avaliacoes transferidas para o que voce mantiver.</p>
+      <div id="mergeOptions"></div>
+      <div id="mergePreview" style="background:#FFF3E0;border:1px solid #E65100;border-radius:8px;padding:12px 14px;font-size:12px;color:#E65100;margin-top:14px;display:none;line-height:1.6"></div>
+      <input type="hidden" id="mManter"/><input type="hidden" id="mAbsorver"/>
+      <button class="btn" id="mConfirm" onclick="confirmMerge()" style="width:100%;justify-content:center;background:#E65100;color:#fff;border-color:#E65100;margin-top:16px;display:none">Confirmar Mesclagem</button>
     </div>
   </div>
 </div>
@@ -389,6 +406,7 @@ function renderModeracao() {
         '<td><span class="tag tag-tipo">' + esc(p.tipo) + '</span></td>' +
         '<td>' + (dup ? '<span class="tag tag-dup" title="Possivel duplicata de: ' + dup.map(function(x){return esc(x.nome);}).join(', ') + '">Duplicata?</span>' : '<span class="tag tag-pend">Pendente</span>') + '</td>' +
         '<td style="text-align:right;white-space:nowrap">' +
+        (dup ? '<button class="btn" style="background:#FFF3E0;color:#E65100;border-color:#E65100" onclick="openMerge(\'' + p.id + '\')">Mesclar</button> ' : '') +
         '<button class="btn btn-approve" onclick="approve(\'' + p.id + '\')">Aprovar</button> ' +
         '<button class="btn btn-edit" onclick="openEdit(\'' + p.id + '\')">Editar</button> ' +
         '<button class="btn btn-reject" onclick="reject(\'' + p.id + '\')">Excluir</button>' +
@@ -482,6 +500,109 @@ function renderCatalogo() {
     }).join('') + '</tbody></table>' +
     (list.length > 200 ? '<div style="text-align:center;padding:12px;color:#888;font-size:12px">Mostrando 200 de ' + list.length + '. Use a busca para refinar.</div>' : '');
 }
+
+// MERGE (Fase 4)
+function rpc(fn, params) {
+  return fwt(SUPA + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(params || {})
+  }, 10000).then(function(r){
+    if (!r.ok) return r.text().then(function(t){ throw new Error(t); });
+    return r.text().then(function(t){ return t ? JSON.parse(t) : null; });
+  });
+}
+
+function openMerge(pendId) {
+  var dup = duplicatas.find(function(d){ return d.pendente.id === pendId; });
+  if (!dup) return;
+  // Candidatos: o pendente + os similares (verificados ou nao)
+  var todos = [dup.pendente].concat(dup.similares);
+  document.getElementById('mManter').value = '';
+  document.getElementById('mAbsorver').value = '';
+  document.getElementById('mergePreview').style.display = 'none';
+  document.getElementById('mConfirm').style.display = 'none';
+
+  // Guarda os ids para o par selecionado
+  window._mergeGroup = todos;
+  document.getElementById('mergeOptions').innerHTML =
+    '<div style="font-size:11px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:8px">Manter qual registro?</div>' +
+    todos.map(function(v) {
+      return '<label style="display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border:1.5px solid #DDD;border-radius:8px;margin-bottom:7px;cursor:pointer">' +
+        '<input type="radio" name="mergeKeep" value="' + v.id + '" onchange="onMergeKeep(\'' + v.id + '\')" style="margin-top:3px"/>' +
+        '<div><div style="font-weight:700;font-size:13px">' + esc(v.nome) +
+        (v.verificado ? ' <span class="tag tag-ok">verificado</span>' : ' <span class="tag tag-pend">pendente</span>') + '</div>' +
+        '<div style="font-size:11px;color:#888;margin-top:2px">' + [v.produtor, v.pais, v.regiao].filter(Boolean).map(esc).join(' · ') + '</div></div>' +
+        '</label>';
+    }).join('');
+  document.getElementById('mergeModal').classList.remove('hide');
+}
+
+function onMergeKeep(keepId) {
+  var group = window._mergeGroup || [];
+  // Se ha exatamente 2 no grupo, o outro e o absorver
+  var others = group.filter(function(v){ return v.id !== keepId; });
+  document.getElementById('mManter').value = keepId;
+
+  if (others.length === 1) {
+    document.getElementById('mAbsorver').value = others[0].id;
+    runMergePreview();
+  } else {
+    // Mais de 2: pede para escolher qual absorver (merge par a par)
+    var prev = document.getElementById('mergePreview');
+    prev.style.display = 'block';
+    prev.innerHTML = '<strong>Grupo com ' + group.length + ' registros.</strong> A mesclagem e feita par a par. Selecione abaixo qual absorver primeiro:<br><br>' +
+      others.map(function(v) {
+        return '<label style="display:block;margin-top:4px;cursor:pointer"><input type="radio" name="mergeAbsorb" value="' + v.id + '" onchange="document.getElementById(\'mAbsorver\').value=this.value;runMergePreview()"/> ' + esc(v.nome) + '</label>';
+      }).join('');
+  }
+}
+
+function runMergePreview() {
+  var manter = document.getElementById('mManter').value;
+  var absorver = document.getElementById('mAbsorver').value;
+  if (!manter || !absorver) return;
+  rpc('sc_merge_preview', { manter: manter, absorver: absorver })
+    .then(function(p) {
+      var prev = document.getElementById('mergePreview');
+      prev.style.display = 'block';
+      var html = '<strong>Pre-visualizacao:</strong><br>' +
+        '• ' + p.avaliacoes_repontadas + ' avaliacao(oes) serao transferidas<br>';
+      if (p.avaliacoes_descartadas > 0) {
+        html += '• <strong>' + p.avaliacoes_descartadas + ' avaliacao(oes) serao DESCARTADAS</strong> (o mesmo sommelier ja avaliou o registro mantido)<br>';
+      }
+      if (p.itens_carta_removidos > 0) {
+        html += '• <strong>' + p.itens_carta_removidos + ' item(ns) de carta serao removidos</strong> junto<br>';
+      }
+      if (p.avaliacoes_descartadas === 0 && p.itens_carta_removidos === 0) {
+        html += '• Nenhuma perda de dados — merge limpo';
+      }
+      prev.innerHTML = html;
+      document.getElementById('mConfirm').style.display = 'block';
+    })
+    .catch(function(e){ toast('Erro no preview: ' + e.message); });
+}
+
+function confirmMerge() {
+  var manter = document.getElementById('mManter').value;
+  var absorver = document.getElementById('mAbsorver').value;
+  if (!manter || !absorver) { toast('Selecione os registros'); return; }
+  if (!confirm('Confirmar mesclagem? Esta acao nao pode ser desfeita.')) return;
+  var btn = document.getElementById('mConfirm');
+  btn.disabled = true; btn.textContent = 'Mesclando...';
+  rpc('sc_merge_vinhos', { manter: manter, absorver: absorver })
+    .then(function(res) {
+      return loadAll().then(function() {
+        closeMerge();
+        renderModeracao();
+        toast('Mesclado: ' + res.avaliacoes_repontadas + ' transferidas, ' + res.avaliacoes_descartadas + ' descartadas');
+      });
+    })
+    .catch(function(e){ toast('Erro: ' + e.message); })
+    .finally(function(){ btn.disabled = false; btn.textContent = 'Confirmar Mesclagem'; });
+}
+
+function closeMerge() { document.getElementById('mergeModal').classList.add('hide'); }
 
 // BOOT
 (function() {
