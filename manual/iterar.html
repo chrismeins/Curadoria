@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iterar Studio | Manifesto & Posicionamento</title>
+    <style>
+        /* CSS Reset & Variáveis Base */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f172a; /* Slate 900 - Fundo ultra moderno e escuro */
+            color: #e2e8f0; /* Slate 200 - Texto claro e legível */
+            line-height: 1.6;
+            font-size: 11pt;
+        }
+
+        /* Configurações de Página do WeasyPrint */
+        @page {
+            size: A4;
+            margin: 0; /* Full bleed controlado internamente para evitar quebras estranhas */
+        }
+
+        .page-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background-color: #0f172a;
+            position: relative;
+        }
+
+        /* Header / Banner Principal - Sem Flexbox para WeasyPrint */
+        .hero-banner {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            border-bottom: 2px solid #312e81;
+            padding: 45px 40px;
+            position: relative;
+        }
+
+        .hero-banner .badge {
+            display: inline-block;
+            background-color: #4338ca;
+            color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .hero-banner h1 {
+            font-size: 26pt;
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-banner h1 span {
+            color: #818cf8; /* Indigo accent */
+        }
+
+        .hero-banner p.subtitle {
+            font-size: 13pt;
+            color: #94a3b8;
+            margin: 0;
+            max-width: 600px;
+        }
+
+        /* Conteúdo Principal */
+        .content {
+            padding: 40px;
+        }
+
+        /* Grid Simulado via Tabelas para compatibilidade total com WeasyPrint */
+        .layout-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .layout-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .col-left {
+            width: 60%;
+            padding-right: 30px;
+        }
+
+        .col-right {
+            width: 40%;
+            background-color: #1e293b; /* Slate 800 */
+            border-radius: 8px;
+            padding: 24px;
+            border: 1px solid #334155;
+        }
+
+        /* Tipografia de Seções */
+        h2 {
+            font-size: 15pt;
+            color: #ffffff;
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-weight: 700;
+            border-left: 4px solid #818cf8;
+            padding-left: 12px;
+        }
+
+        h3 {
+            font-size: 12pt;
+            color: #f1f5f9;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #94a3b8; /* Slate 400 */
+            text-align: justify;
+        }
+
+        strong {
+            color: #f1f5f9;
+        }
+
+        /* Listas Estilizadas */
+        ul {
+            margin: 0 0 20px 0;
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: #94a3b8;
+        }
+
+        li strong {
+            color: #e2e8f0;
+        }
+
+        /* Callouts e Destaques */
+        .manifesto-box {
+            background-color: #1e1b4b; /* Deep Indigo */
+            border-left: 4px solid #6366f1;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 30px;
+        }
+
+        .manifesto-box p {
+            color: #c7d2fe;
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* Badges de Tecnologias */
+        .tech-tag {
+            display: inline-block;
+            background-color: #334155;
+            color: #cbd5e1;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 8.5pt;
+            font-family: monospace;
+            margin: 0 4px 6px 0;
+            border: 1px solid #475569;
+        }
+
+        .tech-tag.legacy {
+            background-color: #2e1065;
+            color: #d8b4fe;
+            border-color: #4c1d95;
+        }
+
+        .tech-tag.modern {
+            background-color: #064e3b;
+            color: #a7f3d0;
+            border-color: #065f46;
+        }
+
+        .tech-tag.ai {
+            background-color: #1e3a8a;
+            color: #bfdbfe;
+            border-color: #1d4ed8;
+        }
+
+        /* Pilares de Otimização */
+        .pilar-card {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .pilar-card:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .pilar-title {
+            color: #38bdf8; /* Sky Blue */
+            font-weight: bold;
+            font-size: 11pt;
+            margin-bottom: 4px;
+        }
+
+        /* Rodapé Fixo simulado no layout */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 25px 40px;
+            border-top: 1px solid #1e293b;
+            background-color: #090d16;
+        }
+
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .footer-text {
+            color: #475569;
+            font-size: 8.5pt;
+        }
+
+        .footer-right {
+            text-align: right;
+            color: #6366f1;
+            font-weight: bold;
+            font-size: 9pt;
+            font-family: monospace;
+        }
+
+        /* Controle estrito de quebras para WeasyPrint */
+        h2, h3 {
+            page-break-after: avoid;
+        }
+        
+        .manifesto-box, .col-right, .pilar-card {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        
+        <!-- Header / Posicionamento de Marca -->
+        <div class="hero-banner">
+            <div class="badge">Estúdio de Desenvolvimento Ágil & IA</div>
+            <h1>Iterar <span>Studio</span></h1>
+            <p class="subtitle">Soluções cirúrgicas, código robusto e inteligência aplicada na velocidade que o mundo moderno exige.</p>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="content">
+            
+            <!-- Bloco Manifesto -->
+            <div class="manifesto-box">
+                <p>"Não construímos impérios de software monolíticos que demoram um ano para ver a luz do dia. Criamos ferramentas pequenas, inteligentes e focadas, projetadas para resolver fricções reais imediatamente. Colocamos para rodar, medimos o impacto e iteramos."</p>
+            </div>
+
+            <!-- Tabela de Layout Principal (Substituta de Flex/Grid para o WeasyPrint) -->
+            <table class="layout-table">
+                <tr>
+                    <!-- Coluna da Esquerda: A Fusão de Gerações -->
+                    <td class="col-left">
+                        <h2>A Fusão que nos Torna Únicos</h2>
+                        <p>O mercado atual de tecnologia sofre de um extremo duplo: de um lado, arquiteturas legadas pesadas que travam a inovação; do outro, a pressa de ecossistemas modernos que por vezes negligenciam a segurança estrutural e a estabilidade em escala.</p>
+                        
+                        <p>A <strong>Iterar Studio</strong> quebra essa dicotomia unindo o melhor de dois mundos:</p>
+                        
+                        <h3>A Solidez da Velha Guarda</h3>
+                        <p>Nossa fundação é moldada por desenvolvedores seniores experientes, que cresceram dominando o ecossistema corporativo tradicional. Dominamos a semântica, o gerenciamento de memória e as regras de negócios complexas que sustentam grandes indústrias.</p>
+                        <div>
+                            <span class="tech-tag legacy">Java</span>
+                            <span class="tech-tag legacy">C# / .NET</span>
+                            <span class="tech-tag legacy">PHP</span>
+                            <span class="tech-tag legacy">Coldfusion</span>
+                            <span class="tech-tag legacy">C++</span>
+                        </div>
+
+                        <h3>A Agilidade do Ecossistema Moderno</h3>
+                        <p>Essa base robusta se integra organicamente a um time dinâmico focado em microsserviços, APIs assíncronas e desenvolvimento nativo em nuvem. Traduzimos sistemas densos em entregas rápidas.</p>
+                        <div style="margin-bottom: 20px;">
+                            <span class="tech-tag modern">Node.js</span>
+                            <span class="tech-tag modern">TypeScript</span>
+                            <span class="tech-tag modern">Python</span>
+                            <span class="tech-tag modern">Next.js</span>
+                        </div>
+
+                        <h2>IA Generativa como Catalisador</h2>
+                        <p>Não usamos Inteligência Artificial apenas para criar funcionalidades para os nossos clientes; <strong>a IA está no núcleo do nosso processo de engenharia</strong>. Nossos engenheiros usam LLMs de última geração de forma estratégica para multiplicar a capacidade de entrega, atuando como um multiplicador de força de ponta a ponta.</p>
+                    </td>
+
+                    <!-- Coluna da Direita: Os Quatro Pilares de Engenharia -->
+                    <td class="col-right">
+                        <h2>Otimização de Ponta a Ponta</h2>
+                        <p style="font-size: 9.5pt; margin-bottom: 20px;">Através do uso combinado de experiência sênior e agentes de IA, otimizamos as quatro frentes críticas de qualquer software:</p>
+
+                        <div class="pilar-card">
+                            <div class="pilar-title">1. Desenvolvimento Acelerado</div>
+                            <p style="font-size: 9.5pt; margin-box: 0;">Geração de boilerplate code, refatoração de sistemas legados de forma automática e tradução instantânea de lógicas antigas (ex: Coldfusion/PHP) para microsserviços modernos em Node.js.</p>
+                        </div>
+
+                        <div class="pilar-card">
+                            <div class="pilar-title">2. Testes Autônomos</div>
+                            <p style="font-size: 9.5pt; margin-box: 0;">Criação de suítes de testes unitários e de integração em segundos. A IA varre o código buscando casos de borda e falhas de lógica antes mesmo do deploy.</p>
+                        </div>
+
+                        <div class="pilar-card">
+                            <div class="pilar-title">3. Segurança Blindada</div>
+                            <p style="font-size: 9.5pt; margin-box: 0;">Análise estática de código automatizada por modelos treinados para detectar vulnerabilidades (OWASP Top 10, SQL Injection, vazamento de memória) em tempo real.</p>
+                        </div>
+
+                        <div class="pilar-card">
+                            <div class="pilar-title">4. Performance Extrema</div>
+                            <p style="font-size: 9.5pt; margin-box: 0;">Análise de gargalos em queries de banco de dados, tuning de infraestrutura e otimização de rotinas assíncronas para garantir o menor consumo de recursos e a maior velocidade.</p>
+                        </div>
+                        
+                        <div style="margin-top: 20px; text-align: center;">
+                            <span class="tech-tag ai" style="display:block; margin:0; padding: 6px;">Engineered by Anthropic, OpenAI & Gemini</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+        <!-- Rodapé Fixo -->
+        <div class="footer">
+            <table class="footer-table">
+                <tr>
+                    <td class="footer-text">
+                        Iterar Studio &copy; 2026 • Soluções de Inteligência Artificial Prática<br>
+                        Foco em Entregas Rápidas, Escopo Preciso e Engenharia de Alta Performance.
+                    </td>
+                    <td class="footer-right">
+                        while(true) { iterate(); }
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+</html>
