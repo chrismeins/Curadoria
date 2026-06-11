@@ -337,7 +337,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
   <p class="sp-logo">SommCurator</p>
   <h1 class="sp-title">SommCurator</h1>
   <p class="sp-sub">Curadoria de Cartas de Vinhos</p>
-  <p class="sp-ver">v2026.06.11-r4</p>
+  <p class="sp-ver">v2026.06.11-r5</p>
   <div class="sp-bar"></div>
 </div>
 
@@ -370,7 +370,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
     </form>
     <div class="au-err" id="authErr"></div>
   </div>
-  <p class="au-ver">v2026.06.11-r4</p>
+  <p class="au-ver">v2026.06.11-r5</p>
 </div>
 
 <!-- PROJECT SELECTOR -->
@@ -526,7 +526,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
       <button class="btn btn-s" onclick="goProjects()">Trocar Projeto / Carta</button>
       <button class="btn btn-d" onclick="doSignOut()">Sair da conta</button>
       <div class="divider" style="margin-top:20px"></div>
-      <p class="muted tc">SommCurator v2026.06.11-r4</p>
+      <p class="muted tc">SommCurator v2026.06.11-r5</p>
     </div>
   </div>
 
@@ -563,61 +563,26 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
         </div>
         <div class="frow">
           <div class="fg"><div class="fl">Produtor</div><input class="fi" id="fProdutor" placeholder="Produtor ou quinta"/></div>
-          <div class="fg"><div class="fl">Importadora</div><input class="fi" id="fImportadora" placeholder="Importadora"/></div>
-        </div>
-        <div class="fg"><div class="fl">Contato Importadora</div><input class="fi" id="fContato" placeholder="Representante comercial"/></div>
-        <div class="frow">
           <div class="fg"><div class="fl">Pais <span class="req">*</span></div>
             <select class="fs" id="fPais" onchange="paisOutro(this)">
               <option value="">Selecionar</option>
               <option>Argentina</option><option>Italia</option><option>Franca</option><option>Portugal</option><option>Chile</option><option>Espanha</option><option>Brasil</option><option>Australia</option><option>EUA</option><option>Alemanha</option><option>Nova Zelandia</option><option>Uruguai</option><option>Africa do Sul</option><option>Outro</option>
             </select>
           </div>
-          <div class="fg" id="fgRegiao"><div class="fl">Regiao</div><input class="fi" id="fRegiao" placeholder="Regiao de origem"/></div>
           <div class="fg" id="fgPaisOutro" style="display:none"><div class="fl">Pais (especificar)</div><input class="fi" id="fPaisOutro"/></div>
-        </div>
-        <div class="frow">
-          <div class="fg"><div class="fl">Uva(s)</div><input class="fi" id="fUvas" placeholder="Casta principal"/></div>
-          <div class="fg"><div class="fl">Safra</div><input class="fi" id="fSafra" placeholder="Ano ou NV" maxlength="9"/></div>
         </div>
         <div class="frow">
           <div class="fg"><div class="fl">Tipo <span class="req">*</span></div>
             <select class="fs" id="fTipo"><option value="">Selecionar</option><option>Espumante</option><option>Branco</option><option>Rosé</option><option>Tinto</option><option>Sobremesa</option><option>Fortificado</option></select>
           </div>
-          <div class="fg"><div class="fl">Formato</div>
-            <select class="fs" id="fFormato">
-              <option value="375ml">Meia garrafa 375ml</option>
-              <option value="750ml" selected>Garrafa 750ml</option>
-              <option value="Magnum 1,5L">Magnum 1,5L</option>
-              <option value="Jeroboam 3L">Jeroboam 3L</option>
-            </select>
-          </div>
+          <div class="fg"><div class="fl">Safra</div><input class="fi" id="fSafra" placeholder="Ano ou NV" maxlength="9"/></div>
         </div>
-        <div class="frow">
-          <div class="fg"><div class="fl">Ocasiao</div>
-            <select class="fs" id="fOcasiao"><option value="">Selecionar</option><option>Entrada</option><option>Harmonizacao</option><option>Celebracao</option><option>Colecionador</option><option>Versatil</option></select>
-          </div>
-          <div class="fg"><div class="fl">Data de Prova</div><input class="fi" id="fData" type="date"/></div>
-        </div>
-        <div class="fg">
-          <div class="tgl-r"><div><div class="tgl-l">On-Trade Exclusivo</div><div class="tgl-s">Nao disponivel no varejo</div></div>
-            <label class="tgl"><input type="checkbox" id="fOntrade"/><span class="tgl-sl"></span></label>
-          </div>
-        </div>
-        <div class="fg">
-          <div class="fl">Observacoes</div>
-          <textarea class="fta" id="fObservacoes" placeholder="Enologo, lembrete, contexto da prova, quem indicou..."></textarea>
-          <div class="fhint">Memoria livre - diferente das notas sensoriais</div>
-        </div>
+        <div class="fg"><div class="fl">Data de Prova</div><input class="fi" id="fData" type="date"/></div>
         <button class="btn btn-p" onclick="goStep(1)">Avaliacao &#8594;</button>
       </div>
 
       <div id="step1" style="display:none">
         <div class="stit">2. Avaliacao Sensorial</div>
-        <div class="frow">
-          <div class="fg"><div class="fl">Pontuacao Critico</div><input class="fi" id="fPont" type="number" placeholder="70-100" min="70" max="100"/></div>
-          <div class="fg"><div class="fl">Fonte</div><input class="fi" id="fFonte" placeholder="WS, JS, RP..."/></div>
-        </div>
         <div class="fg">
           <div class="fl">Nota (1-10)</div>
           <div class="nota-c">
@@ -625,6 +590,14 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
             <div class="nota-v" id="notaV">&#8212;</div>
             <button class="nota-b" type="button" onclick="adjNota(1)">&#43;</button>
           </div>
+        </div>
+        <div class="frow">
+          <div class="fg"><div class="fl">Pontuacao Critico</div><input class="fi" id="fPont" type="number" placeholder="70-100" min="70" max="100"/></div>
+          <div class="fg"><div class="fl">Fonte</div><input class="fi" id="fFonte" placeholder="WS, JS, RP..."/></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><div class="fl">Uva(s)</div><input class="fi" id="fUvas" placeholder="Casta principal"/></div>
+          <div class="fg" id="fgRegiao"><div class="fl">Regiao</div><input class="fi" id="fRegiao" placeholder="Regiao de origem"/></div>
         </div>
         <div class="fg"><div class="fl">Notas de Degustacao</div><textarea class="fta" id="fNotas" placeholder="Aromas, sabores, acidez, taninos, final..."></textarea></div>
         <div class="fg">
@@ -642,6 +615,24 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
             <div class="chip" data-v="Vegetariano" onclick="tgChip(this,'h')">Vegetariano</div>
           </div>
         </div>
+        <div class="frow">
+          <div class="fg"><div class="fl">Formato</div>
+            <select class="fs" id="fFormato">
+              <option value="375ml">Meia garrafa 375ml</option>
+              <option value="750ml" selected>Garrafa 750ml</option>
+              <option value="Magnum 1,5L">Magnum 1,5L</option>
+              <option value="Jeroboam 3L">Jeroboam 3L</option>
+            </select>
+          </div>
+          <div class="fg"><div class="fl">Ocasiao</div>
+            <select class="fs" id="fOcasiao"><option value="">Selecionar</option><option>Entrada</option><option>Harmonizacao</option><option>Celebracao</option><option>Colecionador</option><option>Versatil</option></select>
+          </div>
+        </div>
+        <div class="fg">
+          <div class="fl">Observacoes</div>
+          <textarea class="fta" id="fObservacoes" placeholder="Enologo, lembrete, contexto da prova, quem indicou..."></textarea>
+          <div class="fhint">Memoria livre - diferente das notas sensoriais</div>
+        </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-s" style="margin:0" onclick="goStep(0)">&#8592; Voltar</button>
           <button class="btn btn-p" onclick="goStep(2)">Comercial &#8594;</button>
@@ -651,10 +642,19 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
       <div id="step2" style="display:none">
         <div class="stit">3. Comercial e Decisao</div>
         <div class="frow">
+          <div class="fg"><div class="fl">Importadora</div><input class="fi" id="fImportadora" placeholder="Importadora"/></div>
+          <div class="fg"><div class="fl">Contato</div><input class="fi" id="fContato" placeholder="Representante comercial"/></div>
+        </div>
+        <div class="frow">
           <div class="fg"><div class="fl">Preco Lista (R$)</div><input class="fi" id="fPLista" type="number" step="0.01" min="0" placeholder="Tabela"/></div>
           <div class="fg"><div class="fl">Preco Negociado (R$)</div><input class="fi" id="fPCusto" type="number" step="0.01" min="0" placeholder="Negociado" oninput="mkPreview()"/></div>
         </div>
         <div class="fhint" id="mkPrev" style="text-align:right;margin-bottom:12px"></div>
+        <div class="fg">
+          <div class="tgl-r"><div><div class="tgl-l">On-Trade Exclusivo</div><div class="tgl-s">Nao disponivel no varejo</div></div>
+            <label class="tgl"><input type="checkbox" id="fOntrade"/><span class="tgl-sl"></span></label>
+          </div>
+        </div>
         <div class="fg">
           <div class="fl">ABC Projetado</div>
           <div class="abc-s">
@@ -819,7 +819,7 @@ html,body{height:100%;background:var(--bg);font-family:'Segoe UI',system-ui,sans
 var SUPA = 'https://fvwlfoksplfwfcbnenwj.supabase.co';
 var KEY  = 'sb_publishable_ieNBktIwKGsCIwJSTGYPgQ__ypJn13L';
 var BUCKET = 'diana-wines';
-var VERSION = 'v2026.06.11-r4';
+var VERSION = 'v2026.06.11-r5';
 
 var user = null, token = null, refresh = null;
 var projetos = [], cartas = [];
@@ -1626,7 +1626,6 @@ function clearForm() {
   document.getElementById('fData').value = new Date().toISOString().slice(0,10);
   document.getElementById('fOntrade').checked = false;
   document.getElementById('fgPaisOutro').style.display = 'none';
-  document.getElementById('fgRegiao').style.display = 'block';
   document.getElementById('fId').value = '';
   document.getElementById('fFotoUrl').value = '';
   document.getElementById('fVinhoId').value = '';
@@ -1760,9 +1759,9 @@ function getChips(sel, cls) {
 }
 
 function paisOutro(sel) {
-  var o = sel.value === 'Outro';
-  document.getElementById('fgPaisOutro').style.display = o ? 'block' : 'none';
-  document.getElementById('fgRegiao').style.display = o ? 'none' : 'block';
+  // "Outro" revela apenas o campo de pais livre (step 0).
+  // Regiao agora vive na etapa sensorial e e sempre visivel.
+  document.getElementById('fgPaisOutro').style.display = sel.value === 'Outro' ? 'block' : 'none';
 }
 
 function mkPreview() {
