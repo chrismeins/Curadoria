@@ -2,6 +2,7 @@
 <html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://fvwlfoksplfwfcbnenwj.supabase.co; connect-src 'self' https://fvwlfoksplfwfcbnenwj.supabase.co; worker-src 'self'; manifest-src 'self';"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="mobile-web-app-capable" content="yes"/>
@@ -1050,8 +1051,8 @@ function renderProjetos() {
     var sel = selProj === p.id;
     return '<div class="pj-card' + (sel ? ' sel' : '') + '" onclick="selectProj(\'' + p.id + '\')">' +
       '<div class="pj-ico">' + (icons[p.tipo] || '\u{1F4CB}') + '</div>' +
-      '<div style="flex:1;min-width:0"><div class="pj-name">' + p.nome + '</div>' +
-      '<div class="pj-meta">' + p.tipo + (p.perfil ? ' - ' + p.perfil : '') + ' - ' + cts.length + ' carta' + (cts.length !== 1 ? 's' : '') + '</div></div>' +
+      '<div style="flex:1;min-width:0"><div class="pj-name">' + esc(p.nome) + '</div>' +
+      '<div class="pj-meta">' + esc(p.tipo) + (p.perfil ? ' - ' + esc(p.perfil) : '') + ' - ' + cts.length + ' carta' + (cts.length !== 1 ? 's' : '') + '</div></div>' +
       '</div>';
   }).join('');
 }
@@ -1077,7 +1078,7 @@ function renderCartas() {
   el.innerHTML = cartas.map(function(c) {
     var sel = selCarta === c.id;
     return '<div class="ct-item' + (sel ? ' sel' : '') + '" onclick="selectCarta(\'' + c.id + '\')">' +
-      '<div><div class="ct-name">' + c.titulo + '</div><div class="ct-meta">' + c.tipo + '</div></div>' +
+      '<div><div class="ct-name">' + esc(c.titulo) + '</div><div class="ct-meta">' + esc(c.tipo) + '</div></div>' +
       '<span style="color:var(--gold)">&#8594;</span></div>';
   }).join('');
 }
@@ -1165,7 +1166,37 @@ function loadAll() {
     if (!config.metas_estilo) setDefaultConfig();
     calcMk();
     renderAll();
+    // Persiste dados para uso offline
+    try {
+      localStorage.setItem('sc_cache_bib',   JSON.stringify(biblioteca));
+      localStorage.setItem('sc_cache_aval',  JSON.stringify(avaliacoes));
+      localStorage.setItem('sc_cache_itens', JSON.stringify(itens));
+      localStorage.setItem('sc_cache_cfg',   JSON.stringify(config));
+      localStorage.setItem('sc_cache_ts',    new Date().toISOString());
+    } catch(e) { /* quota exceeded — ignora */ }
   });
+}
+
+/* Restaura dados do cache local quando offline */
+function loadFromCache() {
+  try {
+    var bib   = localStorage.getItem('sc_cache_bib');
+    var aval  = localStorage.getItem('sc_cache_aval');
+    var its   = localStorage.getItem('sc_cache_itens');
+    var cfg   = localStorage.getItem('sc_cache_cfg');
+    var ts    = localStorage.getItem('sc_cache_ts');
+    if (bib)   biblioteca  = JSON.parse(bib);
+    if (aval)  avaliacoes  = JSON.parse(aval);
+    if (its)   itens       = JSON.parse(its);
+    if (cfg)   config      = JSON.parse(cfg);
+    if (!config.metas_estilo) setDefaultConfig();
+    calcMk();
+    renderAll();
+    var ago = ts ? ' · dados de ' + new Date(ts).toLocaleString('pt-BR') : '';
+    toast('Modo offline — exibindo último cache' + ago, 4000);
+  } catch(e) {
+    toast('Sem dados em cache. Conecte-se à internet.', 4000);
+  }
 }
 
 function loadBib() {
@@ -1280,7 +1311,7 @@ function vinhoDot(tipo) {
 // Compat: emoji() antigo agora retorna o badge (usado em alguns pontos)
 function emoji(t) { return vinhoIco(t, 24); }
 function aprovados() { return avaliacoes.filter(function(a){ return a.status_avaliacao === 'Aprovado'; }); }
-function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 /* ============================================================
    9. PAINEL (Dashboard)
@@ -1421,8 +1452,8 @@ function openBibDet(id) {
     '<div class="dt-photo">' + vinhoIco(b.tipo, 64) + '</div>' +
     '<div class="dt-name">' + esc(b.nome) + '</div>' +
     '<div class="dt-sub">' + [b.produtor, b.pais].filter(Boolean).map(esc).join(' - ') + '</div>' +
-    '<div class="dt-tags"><span class="tag tp">' + b.tipo + '</span>' +
-    (avd ? '<span class="tag aa">' + avd.status_avaliacao + '</span>' : '') + '</div>' +
+    '<div class="dt-tags"><span class="tag tp">' + esc(b.tipo) + '</span>' +
+    (avd ? '<span class="tag aa">' + esc(avd.status_avaliacao) + '</span>' : '') + '</div>' +
     '<div class="dt-grid">' + cells + '</div>' +
     (avd && avd.notas_degustacao ? '<div class="dt-notes">' + esc(avd.notas_degustacao) + '</div>' : '') +
     '<div class="dt-acts">' + acts + '</div>';
@@ -1490,7 +1521,7 @@ function renderAval() {
       '<div class="wc-info"><div class="wc-name">' + esc(a.vinho_nome) + '</div>' +
       '<div class="wc-sub">' + [a.vinho_produtor, a.vinho_pais].filter(Boolean).map(esc).join(' · ') + '</div>' +
       '<div class="wc-meta">' +
-      (a.abc_projetado ? '<span class="tag a' + a.abc_projetado.toLowerCase() + '">' + a.abc_projetado + '</span>' : '') +
+      (a.abc_projetado ? '<span class="tag a' + esc(a.abc_projetado.toLowerCase()) + '">' + esc(a.abc_projetado) + '</span>' : '') +
       (a.ontrade_exclusivo ? '<span class="tag ot">OT</span>' : '') +
       (inC ? '<span class="tag ic">Na Carta</span>' : '') + '</div></div>' +
       '<div style="text-align:right">' +
@@ -1513,9 +1544,9 @@ function openAvalDet(id) {
     '<div class="dt-name">' + esc(a.vinho_nome) + '</div>' +
     '<div class="dt-sub">' + [a.vinho_produtor, a.vinho_pais].filter(Boolean).map(esc).join(' - ') + '</div>' +
     '<div class="dt-tags">' +
-    (a.vinho_tipo ? '<span class="tag tp">' + a.vinho_tipo + '</span>' : '') +
-    (a.abc_projetado ? '<span class="tag a' + a.abc_projetado.toLowerCase() + '">' + a.abc_projetado + '</span>' : '') +
-    (a.nota_sommelier ? '<span class="tag" style="background:var(--gold-l);color:var(--gold-d)">\u2B50 ' + a.nota_sommelier + '/10</span>' : '') +
+    (a.vinho_tipo ? '<span class="tag tp">' + esc(a.vinho_tipo) + '</span>' : '') +
+    (a.abc_projetado ? '<span class="tag a' + esc(a.abc_projetado.toLowerCase()) + '">' + esc(a.abc_projetado) + '</span>' : '') +
+    (a.nota_sommelier ? '<span class="tag" style="background:var(--gold-l);color:var(--gold-d)">\u2B50 ' + esc(String(a.nota_sommelier)) + '/10</span>' : '') +
     (a.ontrade_exclusivo ? '<span class="tag ot">On-Trade</span>' : '') +
     (inC ? '<span class="tag ic">Na Carta</span>' : '') + '</div>' +
     '<div class="dt-grid">' + cells + '</div>' +
@@ -2300,9 +2331,9 @@ setTimeout(function() {
           }
         })
         .catch(function() {
-          // Erro de rede: confia no cache (modo offline)
+          // Erro de rede: exibe app com dados do último cache local
           showScreen(null);
-          loadAll();
+          loadFromCache();
         });
     })
     .catch(function(e) {

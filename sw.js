@@ -1,71 +1,82 @@
-// ============================================================
-// SommCurator — sw.js v1.1
-// SW minimalista: sem cache de HTML, apenas assets estáticos
-// O index.html SEMPRE vem da rede para garantir updates
-// ============================================================
+// SommCurator — sw.js v1.2
+// Cache-first para app shell (offline real)
+// Network-first para Supabase (dados sempre frescos)
 
-const SW_VERSION = 'sc-v1.1';
-const CACHE_NAME = 'sc-assets-v1.1';
+var SW_VERSION = 'sc-v1.2';
+var CACHE_NAME = 'sc-assets-v1.2';
 
-// Apenas assets que nunca mudam (fontes, ícones)
-// NÃO inclui index.html — ele sempre vem da rede
-const PRECACHE = [];
+var PRECACHE = ['./', './index.html', './manifest.json'];
 
-self.addEventListener('install', event => {
-  console.log('[SW] install', SW_VERSION);
-  // Ativa imediatamente sem esperar tab fechar
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', event => {
-  console.log('[SW] activate', SW_VERSION);
-  // Remove caches antigos
+self.addEventListener('install', function(event) {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => {
-        console.log('[SW] deleting old cache:', k);
-        return caches.delete(k);
-      }))
-    ).then(() => self.clients.claim())
+    caches.open(CACHE_NAME)
+      .then(function(cache) { return cache.addAll(PRECACHE); })
+      .then(function() { return self.skipWaiting(); })
+      .catch(function(err) { console.warn('[SW] precache:', err); return self.skipWaiting(); })
   );
 });
 
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(
+        keys.filter(function(k) { return k !== CACHE_NAME; })
+            .map(function(k) { return caches.delete(k); })
+      );
+    }).then(function() { return self.clients.claim(); })
+  );
+});
 
-  // NUNCA cachear HTML — sempre buscar da rede
-  if (event.request.destination === 'document' ||
-      url.pathname.endsWith('.html') ||
-      url.pathname.endsWith('/')) {
-    event.respondWith(fetch(event.request));
-    return;
-  }
+self.addEventListener('fetch', function(event) {
+  var url = new URL(event.request.url);
 
-  // NUNCA cachear requests do Supabase
   if (url.hostname.includes('supabase.co')) {
     event.respondWith(fetch(event.request));
     return;
   }
 
-  // Para tudo mais: rede primeiro, cache como fallback
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
+  var isAppShell = (
+    event.request.destination === 'document' ||
+    url.pathname.endsWith('.html') ||
+    url.pathname === '/' ||
+    url.pathname.endsWith('/')
+  );
+
+  if (isAppShell) {
+    event.respondWith(
+      fetch(event.request).then(function(response) {
         if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          var clone = response.clone();
+          caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
         }
         return response;
+      }).catch(function() {
+        return caches.match(event.request).then(function(cached) {
+          return cached || caches.match('./index.html');
+        });
       })
-      .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request).then(function(response) {
+      if (response.ok) {
+        var clone = response.clone();
+        caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
+      }
+      return response;
+    }).catch(function() {
+      return caches.match(event.request);
+    })
   );
 });
 
-self.addEventListener('message', event => {
-  if (event.data?.type === 'SC_FORCE_SYNC') {
-    event.source?.postMessage({ type: 'SC_SYNC_COMPLETE', success: 0, failed: 0 });
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'SC_FORCE_SYNC') {
+    if (event.source) event.source.postMessage({ type: 'SC_SYNC_COMPLETE', success: 0, failed: 0 });
   }
-  if (event.data?.type === 'SC_GET_PENDING_COUNT') {
-    event.source?.postMessage({ type: 'SC_PENDING_COUNT', count: 0 });
+  if (event.data && event.data.type === 'SC_GET_PENDING_COUNT') {
+    if (event.source) event.source.postMessage({ type: 'SC_PENDING_COUNT', count: 0 });
   }
 });
