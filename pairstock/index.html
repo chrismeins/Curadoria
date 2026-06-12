@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#1A1A2E">
+<title>Adega Terraço — Pedido Diário</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{ --navy:#1A1A2E; --slate:#2C3E50; --gold:#C9A84C; --bg:#F4F6FA; --card:#fff;
+         --ink:#1c2333; --mut:#7a8294; --line:#e6e9f0; --ok:#1f8a4c; --warn:#c47a18; --red:#b83b3b;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:72px}
+  header{background:var(--navy);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  header h1{margin:0;font-size:16px;letter-spacing:.3px}
+  header h1 b{color:var(--gold)}
+  header .sub{font-size:11px;color:#aab0c0;margin-top:2px}
+  .wrap{max-width:780px;margin:0 auto;padding:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0;box-shadow:0 1px 3px rgba(20,30,60,.04)}
+  .row{display:flex;align-items:center;gap:10px}
+  .between{justify-content:space-between}
+  .pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#eef1f7;color:var(--slate)}
+  .pill.gold{background:#f6efda;color:#8a6d18}
+  .muted{color:var(--mut);font-size:12px}
+  h2.sec{font-size:14px;margin:6px 2px;color:var(--slate)}
+  .toolbar{display:flex;gap:8px;margin:6px 0 4px}
+  input,select,button{font-family:inherit;font-size:15px}
+  .inp{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  select.inp{appearance:none}
+  .num{width:74px;text-align:center;padding:9px 6px;border:1px solid var(--line);border-radius:10px;font-weight:700;font-size:16px}
+  .num:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+  .wine{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line)}
+  .wine:last-child{border-bottom:0}
+  .wine .nm{flex:1;min-width:0}
+  .wine .nm .t{font-size:13px;font-weight:600;line-height:1.2}
+  .wine .nm .m{font-size:11px;color:var(--mut);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap}
+  .abc{font-size:10px;font-weight:800;width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;color:#fff}
+  .A{background:#b83b3b}.B{background:#c47a18}.C{background:#5b6472}
+  .btn{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer}
+  .btn.primary{background:var(--gold);color:#2a230a;width:100%;font-size:15px}
+  .btn.dark{background:var(--navy);color:#fff}
+  .btn.ghost{background:#eef1f7;color:var(--slate)}
+  .btn.sm{padding:8px 12px;font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+  td.c,th.c{text-align:center}
+  td.q{font-weight:800;color:var(--navy);text-align:center;font-size:15px}
+  .paishd td{background:var(--navy);color:var(--gold);font-weight:800;font-size:12px;letter-spacing:.5px;border:0}
+  .big{font-size:28px;font-weight:800;color:var(--navy)}
+  nav.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:30}
+  nav.tabs button{flex:1;background:none;border:0;padding:9px 4px 8px;color:var(--mut);font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+  nav.tabs button .ic{font-size:18px;line-height:1}
+  nav.tabs button.on{color:var(--navy)}
+  nav.tabs button.on .ic{filter:none}
+  .hidden{display:none}
+  .empty{text-align:center;color:var(--mut);padding:30px 10px}
+  .banner{background:#fef7e6;border:1px solid #f0dca6;color:#8a6d18;border-radius:10px;padding:10px 12px;font-size:13px;margin:8px 0}
+  .stepnote{font-size:12px;color:var(--mut);margin:2px 2px 8px}
+  label.cfg{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;gap:10px}
+  .toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:24px;font-size:13px;z-index:50;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>Adega <b>Terraço Itália</b></h1>
+  <div class="sub" id="hsub">Pedido diário · ciclo de reposição</div>
+</header>
+
+<!-- ============ FECHAMENTO ============ -->
+<section id="v-fechamento" class="wrap">
+  <div class="card">
+    <div class="row between">
+      <div><div class="muted">Fechamento do dia</div><div class="big" id="fechData">—</div></div>
+      <span class="pill gold" id="fechDow">—</span>
+    </div>
+    <div class="stepnote">Informe quantas <b>garrafas-equivalente</b> foram vendidas hoje de cada vinho. O sistema atualiza o estoque e calcula o pedido de amanhã.</div>
+    <div class="toolbar">
+      <input class="inp" id="fechSearch" placeholder="Buscar vinho…" oninput="renderFech()">
+      <select class="inp" id="fechPais" style="max-width:140px" onchange="renderFech()"></select>
+    </div>
+  </div>
+  <div class="card" id="fechList"></div>
+  <button class="btn primary" onclick="gerarPedido()">Gerar pedido de amanhã →</button>
+  <div style="height:8px"></div>
+</section>
+
+<!-- ============ PEDIDO ============ -->
+<section id="v-pedido" class="wrap hidden">
+  <div class="card">
+    <div class="row between">
+      <div><div class="muted">Pedido para</div><div class="big" id="pedData">—</div></div>
+      <div style="text-align:right"><span class="pill gold" id="pedDow">—</span><div class="muted" id="pedFator" style="margin-top:4px"></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row between" style="margin-bottom:6px">
+      <h2 class="sec" style="margin:0">Subir ao andar <span class="muted" id="pedTot"></span></h2>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost sm" onclick="copiarPedido()">📋 Copiar</button>
+      <button class="btn ghost sm" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn ghost sm" onclick="window.print()">🖨 Imprimir</button>
+    </div>
+    <div id="pedList"></div>
+  </div>
+  <button class="btn dark primary" style="background:var(--navy);color:#fff" onclick="confirmarEntrega()">✓ Confirmar entrega e iniciar o novo dia</button>
+  <div style="height:8px"></div>
+</section>
+
+<!-- ============ ESTOQUE ============ -->
+<section id="v-estoque" class="wrap hidden">
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">Estoque atual no andar</h2>
+    <div class="stepnote">Use para corrigir manualmente a contagem física quando necessário.</div>
+    <div class="toolbar">
+      <input class="inp" id="estSearch" placeholder="Buscar vinho…" oninput="renderEst()">
+      <select class="inp" id="estPais" style="max-width:140px" onchange="renderEst()"></select>
+    </div>
+  </div>
+  <div class="card" id="estList"></div>
+</section>
+
+<!-- ============ AJUSTES ============ -->
+<section id="v-ajustes" class="wrap hidden">
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">Pesos por dia da semana</h2>
+    <div class="stepnote">Multiplicadores de demanda. São normalizados pela média automaticamente.</div>
+    <div id="cfgWeights"></div>
+  </div>
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">Margem de segurança</h2>
+    <label class="cfg">Folga sobre a demanda estimada
+      <span><input class="num" id="cfgBuffer" type="number" min="0" max="100" step="5"> %</span></label>
+  </div>
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">Sazonalidade por data</h2>
+    <div class="stepnote">Multiplicador extra em datas especiais (ex.: 1,8 no Dia dos Namorados).</div>
+    <div id="cfgSeason"></div>
+    <div class="toolbar" style="margin-top:8px">
+      <input class="inp" id="szDate" type="date">
+      <input class="num" id="szMult" type="number" step="0.05" placeholder="1.5" style="width:90px">
+      <button class="btn ghost sm" onclick="addSeason()">+ Add</button>
+    </div>
+  </div>
+  <div class="card">
+    <button class="btn ghost" style="width:100%;margin-bottom:8px" onclick="backup()">⬇ Exportar backup (JSON)</button>
+    <button class="btn ghost" style="width:100%;margin-bottom:8px;color:var(--red)" onclick="resetAll()">↺ Zerar tudo</button>
+  </div>
+</section>
+
+<nav class="tabs">
+  <button data-v="fechamento" class="on" onclick="go('fechamento')"><span class="ic">📝</span>Fechamento</button>
+  <button data-v="pedido" onclick="go('pedido')"><span class="ic">📦</span>Pedido</button>
+  <button data-v="estoque" onclick="go('estoque')"><span class="ic">🍷</span>Estoque</button>
+  <button data-v="ajustes" onclick="go('ajustes')"><span class="ic">⚙️</span>Ajustes</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+const WINES = [{"cod": 826, "nome": "CATENA ZAPATA CATENA MALBEC - 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "A", "dia": 4.771, "origem": "CARTA"}, {"cod": null, "nome": "CANNONAU DOC CAPOCACCIA DEIL NURAGHI TINTO", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "A", "dia": 3.077, "origem": "EVENTO"}, {"cod": 15221, "nome": "D.V CATENA CABERNET SAUVIGNON MALBEC - 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "A", "dia": 2.679, "origem": "CARTA"}, {"cod": 14948, "nome": "1/2 LUIZ ARGENTA CABERNET SAUVINGNON 375 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "A", "dia": 2.775, "origem": "CARTA"}, {"cod": null, "nome": "BERNARDI JACUR BRUT", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "A", "dia": 2.744, "origem": "EVENTO"}, {"cod": 17338, "nome": "1/2 CARMEN INSIGNE CABERNET SAUVIGNON 375 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "A", "dia": 2.554, "origem": "CARTA"}, {"cod": 16910, "nome": "RAR CABERNET SAUVIGNON/ MERLOT LAUREA - 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "A", "dia": 1.974, "origem": "CARTA"}, {"cod": 17336, "nome": "1/2 CARMEN INIGNE SAUVIGNON BLANC - 375ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "A", "dia": 2.087, "origem": "CARTA"}, {"cod": 18056, "nome": "VILLA ANTINORI ROSSO TOSCANA IGT 750ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 1.824, "origem": "CARTA"}, {"cod": 15912, "nome": "1/2 PIZZATO CHARDONNAY 375 ML.", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "A", "dia": 1.394, "origem": "CARTA"}, {"cod": 17365, "nome": "LUIGI BOSCA DE SANGRE CABERNET SAUVIGNON - 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "A", "dia": 1.691, "origem": "CARTA"}, {"cod": null, "nome": "BARONE MONTALTO PINOT GRIGIO", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "A", "dia": 1.423, "origem": "EVENTO"}, {"cod": 9468, "nome": "DI LENARDO PINOT GRIGIO 750ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 1.4, "origem": "CARTA"}, {"cod": 820, "nome": "CATENA ZAPATA CATENA - CHARDONNAY 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "A", "dia": 1.163, "origem": "CARTA"}, {"cod": 18055, "nome": "VILLA ANTINORI BIANCO TOSCANA IGT 750ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 1.011, "origem": "CARTA"}, {"cod": 17337, "nome": "1/2 CATENA ZAPATA CHARDONNAY 375 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.64, "origem": "CARTA"}, {"cod": 14336, "nome": "CASTELLO BANFI CENTINE TOSCANA TINTO - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.715, "origem": "CARTA"}, {"cod": 1013, "nome": "CHATEAU BEL AIR 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.55, "origem": "CARTA"}, {"cod": 17897, "nome": "LUIGI BOSCA - MALBEC - 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.614, "origem": "CARTA"}, {"cod": 17440, "nome": "LE ANFORE ROSSO SALENTO IGT - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.754, "origem": "CARTA"}, {"cod": 2066, "nome": "EMILIANA NOVAS GRAN RESERVA CARMENÉRE/CABERNET SAUVIGNON - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.559, "origem": "CARTA"}, {"cod": 883, "nome": "GARCES SILVA AMAYNA SAUVIGNON BLANC 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.467, "origem": "CARTA"}, {"cod": 17260, "nome": "WHISPERING ANGEL ROSE 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.455, "origem": "CARTA"}, {"cod": 17442, "nome": "BRUNILDE DI MENZIONE AGLIANICO DEL VULTURE - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.407, "origem": "CARTA"}, {"cod": 17441, "nome": "CANTINE DI ORA AMICALE ROSSO - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.487, "origem": "CARTA"}, {"cod": null, "nome": "BARONE MONT PINOT GRIGIO", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.492, "origem": "EVENTO"}, {"cod": 16856, "nome": "JACOPO BIONDI SANTI BRACCALE - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.455, "origem": "CARTA"}, {"cod": 15312, "nome": "GARZON ESTATE PINOT NOIR ROSE 750 ML", "pais": "URUGUAI", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.383, "origem": "CARTA"}, {"cod": 8681, "nome": "VINOSIA DAL 1947 TERRE DI SAN VICENZO PRIMITIVO DI MANDURIA - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.455, "origem": "CARTA"}, {"cod": 16372, "nome": "BOSIO BARBERA D' ALBA EGIDIO BARRIQUE DOC - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "A", "dia": 0.493, "origem": "CARTA"}, {"cod": 14192, "nome": "ERRAZURIZ DON MAXIMIANO 2016 - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.322, "origem": "CARTA"}, {"cod": 1110, "nome": "CARTUXA COLHEITA - FUNDACAO EUGENIO DE ALMEIDA 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.362, "origem": "CARTA"}, {"cod": 9550, "nome": "FAMILLE PERRIN COTES DU RHONE RESERVE ROUGE - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.335, "origem": "CARTA"}, {"cod": 13500, "nome": "LUIZ ARGENTA LA JOVEM ROSE 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.356, "origem": "CARTA"}, {"cod": 15506, "nome": "BRANCAIA CHIANTI CLASSICO - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.32, "origem": "CARTA"}, {"cod": 17902, "nome": "NORTON MALBEC DOC - 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.332, "origem": "CARTA"}, {"cod": 15155, "nome": "ALLEGRINI VALPOLICELLA DOC - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.266, "origem": "CARTA"}, {"cod": 2965, "nome": "RAR COLLEZIONE PINOT NOIR - 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.329, "origem": "CARTA"}, {"cod": 11374, "nome": "PISANO RPF TANNAT - 750 ML", "pais": "URUGUAI", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.272, "origem": "CARTA"}, {"cod": 921, "nome": "MONTES ALPHA CABERNET SAUVIGNON - 750ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.284, "origem": "CARTA"}, {"cod": 2065, "nome": "EMILIANA NOVAS GRAN RESERVA CHARDONNAY 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.224, "origem": "CARTA"}, {"cod": 15884, "nome": "1/2  CASTELLO BANFI ROSSO DI MONTALCINO 375 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.251, "origem": "CARTA"}, {"cod": 15913, "nome": "PIZZATO LEGNO CHARDONNAY GRAN RESERVA D.O.V.V - 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.176, "origem": "CARTA"}, {"cod": 1016, "nome": "DOPFF & FILS GEWURZTRAMINER ALSACE 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.194, "origem": "CARTA"}, {"cod": null, "nome": "LEYDA RESERVA PINOT NOIR", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.221, "origem": "EVENTO"}, {"cod": null, "nome": "CANNONAU", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.293, "origem": "EVENTO"}, {"cod": 12915, "nome": "COLLI DI LUNI VERMENTINO BIANCO VIGNA DEL PREFETTO 750ML (SUGESTAO)", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.197, "origem": "CARTA"}, {"cod": 822, "nome": "ANGELICA ZAPATA MALBEC - CATENA ZAPATA -  750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.236, "origem": "CARTA"}, {"cod": 6294, "nome": "LE MARCHESINE FRANCIACORTA BRUT DOCG 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.153, "origem": "CARTA"}, {"cod": 17368, "nome": "EL ENEMIGO CABERNET FRANC - 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.138, "origem": "CARTA"}, {"cod": 1042, "nome": "LUIGI COPPO MOSCATO D`ASTI MONCALVINA - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.144, "origem": "CARTA"}, {"cod": 15468, "nome": "PIZZATO RESERVA ALICANTE BOUSCHET 750ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.203, "origem": "CARTA"}, {"cod": 2261, "nome": "FEUDI DI SAN MARZANO PRIMITIVO DI MANDURIA SESSANTANNI DOC - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.135, "origem": "CARTA"}, {"cod": 17331, "nome": "FLECHAS DE LOS ANDES PUNTA DE FLECHAS ROSE 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.133, "origem": "CARTA"}, {"cod": 814, "nome": "BARISTA PINOTAGE - 750 ML", "pais": "AFRICA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.173, "origem": "CARTA"}, {"cod": 17369, "nome": "ZUCCARDI SERIE A CHARDONNAY/VIOGNIER 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.114, "origem": "CARTA"}, {"cod": 2488, "nome": "ROSSO DI MONTALCINO DOC - CASTELLO BANFI  - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.123, "origem": "CARTA"}, {"cod": 15394, "nome": "SCHIOPETTO SAUVINGNON COLLIO - 750 ML - N/C", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.132, "origem": "CARTA"}, {"cod": 1861, "nome": "JACOB'S CREEK SHIRAZ  - 750 ML", "pais": "AUSTRALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.15, "origem": "CARTA"}, {"cod": 15570, "nome": "ST. MICHAEL PINOT BLANC NAHE 750 ML", "pais": "ALEMANHA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.105, "origem": "CARTA"}, {"cod": 16308, "nome": "CASTELO BANFI CENTINE BIANCO 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.156, "origem": "CARTA"}, {"cod": 14879, "nome": "DON AMERIGO GRAND RESERVA SYRAH 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.141, "origem": "CARTA"}, {"cod": 3052, "nome": "TENUTA DONNAFUGATA ANTHILIA IGT - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.105, "origem": "CARTA"}, {"cod": 14880, "nome": "DON AMERIGO RESERVA PEDRO XIMENEZ - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.121, "origem": "CARTA"}, {"cod": 15892, "nome": "CARTUXA BRANCO FUNDAÇÃO EUGENIO DE ALMEIDA - 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.081, "origem": "CARTA"}, {"cod": 13290, "nome": "CASTELLO BANFI ASKA BOLGHERI DOC - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.081, "origem": "CARTA"}, {"cod": 17354, "nome": "BARON PHILIPPE DE ROTHSCHILD BARON HENRI MEDOC - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.075, "origem": "CARTA"}, {"cod": 816, "nome": "ST.THOMAS LES EMIRS - 750ML (LIBANO)", "pais": "LIBANO", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.12, "origem": "CARTA"}, {"cod": 18635, "nome": "LAMBRUSCO CONCERTO 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.069, "origem": "CARTA"}, {"cod": 2630, "nome": "BUENO BELLAVISTA ESTATE PARALELO 31 - 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.093, "origem": "CARTA"}, {"cod": 1902, "nome": "JOSEPH DROUHIN CHABLIS 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "B", "dia": 0.09, "origem": "CARTA"}, {"cod": null, "nome": "IL PUMO NEGRO AMARO SUGESTAO", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.033, "origem": "EVENTO"}, {"cod": 923, "nome": "MONTES ALPHA SYRAH - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.087, "origem": "CARTA"}, {"cod": null, "nome": "PORTO GRAHAMS", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.06, "origem": "EVENTO"}, {"cod": 14307, "nome": "GRECO DI TUFO DOCG 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.057, "origem": "CARTA"}, {"cod": 14857, "nome": "ARROCAL PASSIÓN CRIANZA - 750 ML", "pais": "ESPANHA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.087, "origem": "CARTA"}, {"cod": 15887, "nome": "PERA GRAVE RESERVA - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.093, "origem": "CARTA"}, {"cod": 16651, "nome": "VIGNETI DELLE DOLOMITI IGT ROSSO - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.084, "origem": "CARTA"}, {"cod": null, "nome": "GOICHOT FRERES BOURGOGNE PINOT NOIR", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.042, "origem": "EVENTO"}, {"cod": 17346, "nome": "BUENO TINTO PETIT VERDOT RESERVA - 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.06, "origem": "CARTA"}, {"cod": null, "nome": "BORGONE IGT TOSCANA", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.056, "origem": "EVENTO"}, {"cod": 15688, "nome": "ZUCCARDI Q TREMPRANILLO - 750ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.075, "origem": "CARTA"}, {"cod": 1081, "nome": "RENATO RATTI MARCENASCO BAROLO DOCG 2007/2018 - 750 ML (SUGESTAO)", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.078, "origem": "CARTA"}, {"cod": null, "nome": "MARQUES DE CASA CONCHA CINSAULT ROSE RUPTURA", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.024, "origem": "EVENTO"}, {"cod": null, "nome": "I PIANI CAPOCACCIA TINTO N C", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.033, "origem": "EVENTO"}, {"cod": null, "nome": "TERRAZAS GRAND MALBEC WINE DINNDER", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.057, "origem": "EVENTO"}, {"cod": 2494, "nome": "MARQUES DE MURRIETA RESERVA TINTO - 750 ML", "pais": "ESPANHA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.063, "origem": "CARTA"}, {"cod": 6043, "nome": "PERA MANCA BRANCO 2021 - 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.063, "origem": "CARTA"}, {"cod": 2491, "nome": "ZENATO RIPASSA VALPOLICELLA SUPERIORE - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.045, "origem": "CARTA"}, {"cod": 1021, "nome": "DOMAINE JOSEPH DROUHIN VILLAGES - 750 ML - N/C", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.063, "origem": "CARTA"}, {"cod": 1085, "nome": "JACOPO BIONDI SANTI SASSOALLORO - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.045, "origem": "CARTA"}, {"cod": 1018, "nome": "DOPFF & FILS RIESLING ALSACE 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.057, "origem": "CARTA"}, {"cod": 2100, "nome": "CARTUXA RESERVA - 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.045, "origem": "CARTA"}, {"cod": null, "nome": "ROCCA DELLE MACIE CAMPO MACCCIONE VERMENTINO MAREMMA N C", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.042, "origem": "EVENTO"}, {"cod": null, "nome": "MASI LEVARIE SOAVE CLASSICO DOC N C", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.057, "origem": "EVENTO"}, {"cod": null, "nome": "M CHAPOUTIER LA BERNARDINE CHATEAUNEUF DU PAPE", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.054, "origem": "EVENTO"}, {"cod": null, "nome": "ROSSO DI MONTALCINO DOC SIRO PACENTI", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.024, "origem": "EVENTO"}, {"cod": null, "nome": "GELSO BIANCO FIANO N C", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.018, "origem": "EVENTO"}, {"cod": 2949, "nome": "CATENA ZAPATA CATENA MALBEC - MAGNUM 1.500 LT", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.051, "origem": "CARTA"}, {"cod": null, "nome": "PLANETA CERASUOLO DI VITTORIA DOCG N C", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.057, "origem": "EVENTO"}, {"cod": null, "nome": "MORELLINO DI SCANSANO N C", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.054, "origem": "EVENTO"}, {"cod": null, "nome": "VALPOLICELLA RIPASSO DOC RIONDO", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.023, "origem": "EVENTO"}, {"cod": 13294, "nome": "CASTELLO BANFI BRUNELLO DI MONTALCINO 2018 - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.036, "origem": "CARTA"}, {"cod": null, "nome": "TELMO RODRIGUEZ BASA RUEDA N C", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.054, "origem": "EVENTO"}, {"cod": null, "nome": "RAR BRUT AVVENTO N C", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.03, "origem": "EVENTO"}, {"cod": null, "nome": "CECCHI CHIANTI CLASSICO RISERVA DI FAMIGLIA DOCG RUPTURA", "pais": "EVENTO", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.042, "origem": "EVENTO"}, {"cod": 1107, "nome": "SOALHEIRO ALVARINHO 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.06, "origem": "CARTA"}, {"cod": 1108, "nome": "LUIS PATO MARIA GOMES - 750ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.027, "origem": "CARTA"}, {"cod": 15971, "nome": "DONA MARIA AMANTIS BRANCO 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.033, "origem": "CARTA"}, {"cod": 16374, "nome": "DOMINIQUE LAURENT BOURGOGNE CHARDONNAY - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.03, "origem": "CARTA"}, {"cod": 2487, "nome": "1/2  CASTELLO BANFI BRUNELLO DI MONTALCINO 375 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.027, "origem": "CARTA"}, {"cod": 16652, "nome": "RAR MASI AMARONE DELLA VALPOLICELLA CLASSICO - 750ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.033, "origem": "CARTA"}, {"cod": 8684, "nome": "CAYMUS ZINFANDEL NAPA VALLEY - 2020 - 750 ML", "pais": "USA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.024, "origem": "CARTA"}, {"cod": 15685, "nome": "ALAMBRE MOSCATEL ROXO DE SETUBAL 05 ANOS - 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.021, "origem": "CARTA"}, {"cod": 15231, "nome": "ALLEGRINI PALAZZO DELLA TORRE - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.018, "origem": "CARTA"}, {"cod": 2131, "nome": "CHATEAU LE PUY - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.036, "origem": "CARTA"}, {"cod": 15833, "nome": "MASI CAMPOFIORIN ROSSO VERONA IGT - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.021, "origem": "CARTA"}, {"cod": 17366, "nome": "ACHAVAL FERRER QUIMERA - 750 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.024, "origem": "CARTA"}, {"cod": 14738, "nome": "VINA EDEN CHARDONNAY - 750 ML", "pais": "URUGUAI", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.018, "origem": "CARTA"}, {"cod": 17373, "nome": "AMAYNA PINOT NOIR 2019 - MAGNUM 1.500 LT", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.021, "origem": "CARTA"}, {"cod": 16375, "nome": "BAROLO CEREQUIO 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.021, "origem": "CARTA"}, {"cod": 16099, "nome": "GAVI LA ROCCA - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.012, "origem": "CARTA"}, {"cod": 14978, "nome": "FEUDI DI SAN MARZANO PRIMITIVO DI MANDURIA SESSANTANNI 60 2020 - MAGNUM 1.500 LT", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.006, "origem": "CARTA"}, {"cod": 14483, "nome": "GRAVAS DEL MAIPO - SYRAH - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.024, "origem": "CARTA"}, {"cod": 14690, "nome": "VALDIVIESO CABALLO LOCO SAGRADA FAMILIA - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.018, "origem": "CARTA"}, {"cod": 16100, "nome": "LUIGI COPPO COSTEBIANCHE CHARDONNAY 750ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.024, "origem": "CARTA"}, {"cod": 2097, "nome": "BAROLO DOCG MICHELE CHIARLO PALAS 750ML (SUGESTAO)", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.018, "origem": "CARTA"}, {"cod": 1086, "nome": "SITO MORESCO LANGHE ANGELO GAJA  2018/2019 - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.015, "origem": "CARTA"}, {"cod": 14917, "nome": "DOMAINE DES PERDRIX ECHEZEAUX GRAND CRU 2009/2019 - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.012, "origem": "CARTA"}, {"cod": 15470, "nome": "ROQUETTE E CAZES XISTO 2005 - 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.015, "origem": "CARTA"}, {"cod": 1892, "nome": "LUIS PATO VINHAS VELHAS - 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.024, "origem": "CARTA"}, {"cod": 968, "nome": "ALION 2017 - 750 ML", "pais": "ESPANHA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.009, "origem": "CARTA"}, {"cod": 2947, "nome": "EROICA RIESLING 750 ML", "pais": "USA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.017, "origem": "CARTA"}, {"cod": 1084, "nome": "TENUTA SAN GUIDO SASSICAIA 2020 - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.003, "origem": "CARTA"}, {"cod": 2130, "nome": "ODFJELL ALIARA - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.012, "origem": "CARTA"}, {"cod": 17372, "nome": "LUIS PATO BAGA + TOURIGA - MAGNUM 1.500 LT", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.012, "origem": "CARTA"}, {"cod": 4936, "nome": "DONNAFUGATA MILLE E UMA NOTTE NERO D' AVOLA 2015 - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.006, "origem": "CARTA"}, {"cod": 14688, "nome": "VALDIVIESO CABALLO LOCCO LIMARI GRAND CRU - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.012, "origem": "CARTA"}, {"cod": 5868, "nome": "GR 174 - CABERNET SAUVIGNON - 750 ML", "pais": "ESPANHA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.003, "origem": "CARTA"}, {"cod": 8836, "nome": "VEGA SICILIA VALBUENA 5 - 2018- 750 ML", "pais": "ESPANHA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.006, "origem": "CARTA"}, {"cod": 15188, "nome": "CONO SUR OCIO PINOT NOIR - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.003, "origem": "CARTA"}, {"cod": 14905, "nome": "CHATEAU AUSONE 2017 - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.003, "origem": "CARTA"}, {"cod": 1087, "nome": "ANTINORI TIGNANELLO 2015 - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.003, "origem": "CARTA"}, {"cod": 15310, "nome": "POGGIO BONELLI TRAMONTA D'OCA - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.009, "origem": "CARTA"}, {"cod": 3096, "nome": "ALMAVIVA 2021 - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.003, "origem": "CARTA"}, {"cod": 2142, "nome": "EMILIANA COYAM - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.003, "origem": "CARTA"}, {"cod": 17705, "nome": "BRUNO ROCCA BARBARESCO 2020 - 750ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.003, "origem": "CARTA"}, {"cod": 11149, "nome": "LOUIS ROEDERER CRISTAL 2009 - 750ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 975, "nome": "DOM PERIGNON VINTAGE 2012/2013 - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1938, "nome": "VEUVE CLIQUOT BRUT - MAGNUM 1,500 LT", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 15620, "nome": "BOTTEGA PETALO MOSCATO 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 13356, "nome": "FERRARI MAXIMUM BRUT 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1006, "nome": "CHANDON BRUT ROSE 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14223, "nome": "LE MARCHESINE - OPERA ROSE   750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 17259, "nome": "CHANDON EXCELLECENCE 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 15392, "nome": "SCHIOPETTO FRIULANO COLLIO - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 4774, "nome": "TAITTINGER BRUT 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1007, "nome": "CAVE GEISSE BRUT 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1823, "nome": "CHANDON PASSION  750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1005, "nome": "CHANDON RESERVE BRUT 750 ML", "pais": "BRASIL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 2943, "nome": "MOET & CHANDON IMPERIAL ROSE 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 6089, "nome": "G.H MUMM CORDON ROUGE BRUT 750ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1925, "nome": "VEUVE CLICQUOT BRUT 750ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 18622, "nome": "ROSE LALLIER - CHAMPAGNE 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 18621, "nome": "LALLIER - CHAMPAGNE BRUT 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 2124, "nome": "MOET & CHANDON IMPERIAL BRUT 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 7901, "nome": "CHATEAU MOUTON ROTHSCHILD 2017 - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14908, "nome": "COS D' ESTOURNEL SAINT ESTEPHE 2021 - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1028, "nome": "FAIVELEY GEVREY CHAMBERTIN 2017- 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14914, "nome": "CHATEAU LATOUR 2011 - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1089, "nome": "POLIZIANO VINO NOBILE DI MONTEPULCIANO  - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14448, "nome": "CASA NOVA DI NERI TENUTA NUOVA BRUNELLO DI MONTALCINO DOCG 2016 - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 7919, "nome": "ORNELLAIA BOLGHERI SUPERIOR DOC 2012/2018 - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 15170, "nome": "ALLEGRINI LA GROLA VERONESE - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 1031, "nome": "CHATEAU PICHON LONGUEVILLE LALANDE RESERVE DE LA COMTESSE 2017 - 750 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14911, "nome": "CHATEAU LA MISSION HAUT BRION 2011 - 750 ML V", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 17361, "nome": "LAPOSTOLLE CLOS APALTA 2017 - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 15781, "nome": "CONO SUR 20 BARRELS LIMITED EDIFION SYRAH - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14960, "nome": "CASA SILVA MICROTERROIR DE LOS LINGUES CARMENERE 2009/2020 - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 3003, "nome": "CONCHA Y TORO CARMIN DE PEUMO CARMENERE 2018 - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 15783, "nome": "ARBOLEDA BRISA - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 15469, "nome": "ROQUETTE & CAZES - 750 ML", "pais": "PORTUGAL", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 13508, "nome": "ALMAVIVA EPU ASSEMBLAGE 2018 - 750ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 17360, "nome": "A VIK - CARMENERE CABERNET SYRAH CABERTNET FRANC 2015 - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 17339, "nome": "1/2 CATENA ZAPATA CATENA MALBEC 375 ML", "pais": "ARGENTINA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 17335, "nome": "1/2 JOSEPH DROUHIN CHABLIS 375 ML", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14737, "nome": "VINA EDEN CERRO NEGRO - 750 ML", "pais": "URUGUAI", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14886, "nome": "CONCHA Y TORO DON MELCHOR CABERNET SAUVIGNON 2015 - 750 ML", "pais": "CHILE", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14484, "nome": "PODERI DEL PARADISO VIN SANTO - 750 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 959, "nome": "VIN SANTO DEL CHIANTI CLASSICO - 500 ML", "pais": "ITALIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 14993, "nome": "CHATEAU RIEUSSEC 2007 - 375ML.", "pais": "FRANCA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}, {"cod": 954, "nome": "TOKAJI ASZU 6 PUTTUNYOS 2013 - 750 ML", "pais": "HUNGRIA", "formato": "Garrafa 750ml", "abc": "C", "dia": 0.0, "origem": "COLD_START"}];
+const PT_DOW=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const DEF_W={0:1.3,1:0.7,2:0.9,3:1.2,4:1.4,5:1.5,6:1.6};
+const DEF_SEASON={'2026-06-12':1.8,'2026-06-13':1.25,'2026-06-14':1.25,'2026-07-09':1.4,'2026-07-10':1.2};
+
+let cfg = load('somm_cfg', {weights:{...DEF_W}, buffer:0.20, season:{...DEF_SEASON}});
+let st  = load('somm_state', null);
+
+function load(k,d){ try{const v=localStorage.getItem(k); return v?JSON.parse(v):d;}catch(e){return d;} }
+function save(){ localStorage.setItem('somm_cfg',JSON.stringify(cfg)); localStorage.setItem('somm_state',JSON.stringify(st)); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function parseD(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function fmt(s){ const d=parseD(s); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); }
+function dow(s){ return PT_DOW[parseD(s).getDay()]; }
+function nextDay(s){ const d=parseD(s); d.setDate(d.getDate()+1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function avgW(){ const v=Object.values(cfg.weights); return v.reduce((a,b)=>a+b,0)/v.length; }
+function factor(s){ const w=cfg.weights[parseD(s).getDay()]; const sea=cfg.season[s]||1; return (w/avgW())*sea; }
+function pairTarget(w,s){ return Math.max(1, Math.ceil(w.dia*factor(s)*(1+cfg.buffer))); }
+
+function init(){
+  if(!st){
+    const t=todayStr(); const stock={};
+    WINES.forEach((w,i)=>{ stock[i]=pairTarget(w,t); }); // assume andar cheio p/ hoje
+    st={data:t, stock, lastOrder:{}, sales:{}};
+    save();
+  }
+  // popular selects de país
+  const paises=['Todos',...[...new Set(WINES.map(w=>w.pais))].sort()];
+  ['fechPais','estPais'].forEach(id=>{ const el=document.getElementById(id); el.innerHTML=paises.map(p=>`<option>${p}</option>`).join(''); });
+  document.getElementById('cfgBuffer').value=Math.round(cfg.buffer*100);
+  renderAll();
+}
+function renderAll(){ renderFech(); renderEst(); renderCfg(); }
+
+function go(v){
+  document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('v-'+v).classList.remove('hidden');
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  if(v==='pedido') renderPedido();
+  window.scrollTo(0,0);
+}
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+/* ---------- FECHAMENTO ---------- */
+function renderFech(){
+  document.getElementById('fechData').textContent=fmt(st.data);
+  document.getElementById('fechDow').textContent=dow(st.data);
+  document.getElementById('hsub').textContent='Dia operacional: '+fmt(st.data)+' · '+dow(st.data);
+  const q=(document.getElementById('fechSearch').value||'').toLowerCase();
+  const pf=document.getElementById('fechPais').value;
+  const list=document.getElementById('fechList'); list.innerHTML='';
+  let n=0;
+  WINES.forEach((w,i)=>{
+    if(pf&&pf!=='Todos'&&w.pais!==pf) return;
+    if(q&&!w.nome.toLowerCase().includes(q)) return;
+    n++;
+    const sold=st.sales[i]||0;
+    const el=document.createElement('div'); el.className='wine';
+    el.innerHTML=`<span class="abc ${w.abc}">${w.abc}</span>
+      <div class="nm"><div class="t">${w.nome}</div>
+      <div class="m"><span>${w.pais}</span><span>·</span><span>estoque: <b>${st.stock[i]??0}</b></span></div></div>
+      <input class="num" type="number" min="0" inputmode="numeric" value="${sold||''}" placeholder="0"
+        onchange="setSale(${i},this.value)">`;
+    list.appendChild(el);
+  });
+  if(!n) list.innerHTML='<div class="empty">Nenhum vinho encontrado.</div>';
+}
+function setSale(i,v){ v=Math.max(0,parseInt(v||0)); st.sales[i]=v; save(); }
+
+function gerarPedido(){
+  // baixa o estoque pelas vendas do dia
+  WINES.forEach((w,i)=>{ const s=st.sales[i]||0; st.stock[i]=Math.max(0,(st.stock[i]??0)-s); });
+  save();
+  go('pedido');
+}
+
+/* ---------- PEDIDO ---------- */
+function buildOrder(){
+  const amanha=nextDay(st.data);
+  const rows=[];
+  WINES.forEach((w,i)=>{
+    const alvo=pairTarget(w,amanha);
+    const ped=Math.max(0,alvo-(st.stock[i]??0));
+    if(ped>0) rows.push({i,w,alvo,ped,estoque:st.stock[i]??0});
+  });
+  rows.sort((a,b)=> a.w.pais.localeCompare(b.w.pais,'pt') || a.w.nome.localeCompare(b.w.nome,'pt'));
+  return {amanha,rows};
+}
+function renderPedido(){
+  const {amanha,rows}=buildOrder();
+  document.getElementById('pedData').textContent=fmt(amanha);
+  document.getElementById('pedDow').textContent=dow(amanha);
+  const f=factor(amanha); const sea=cfg.season[amanha]||1;
+  document.getElementById('pedFator').textContent='fator do dia: '+f.toFixed(2)+(sea>1?' · sazonal '+sea+'×':'');
+  const tot=rows.reduce((a,r)=>a+r.ped,0);
+  document.getElementById('pedTot').textContent='· '+tot+' garrafas · '+rows.length+' rótulos';
+  const wrap=document.getElementById('pedList');
+  if(!rows.length){ wrap.innerHTML='<div class="empty">Nada a repor — estoque cobre a demanda de amanhã.</div>'; return; }
+  let html='<table><thead><tr><th>Vinho</th><th class="c">Est.</th><th class="c">Alvo</th><th class="c">Pedir</th></tr></thead><tbody>';
+  let pais=null;
+  rows.forEach(r=>{
+    if(r.w.pais!==pais){ pais=r.w.pais; html+=`<tr class="paishd"><td colspan="4">${pais}</td></tr>`; }
+    html+=`<tr><td>${r.w.nome}</td><td class="c">${r.estoque}</td><td class="c">${r.alvo}</td><td class="q">${r.ped}</td></tr>`;
+  });
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+}
+function orderText(){
+  const {amanha,rows}=buildOrder();
+  let t=`REQUISIÇÃO ADEGA — ${fmt(amanha)} (${dow(amanha)})\n`;
+  let pais=null;
+  rows.forEach(r=>{ if(r.w.pais!==pais){pais=r.w.pais; t+=`\n— ${pais} —\n`;} t+=`${r.ped}x  ${r.w.nome}\n`; });
+  t+=`\nTotal: ${rows.reduce((a,r)=>a+r.ped,0)} garrafas`;
+  return t;
+}
+function copiarPedido(){ navigator.clipboard.writeText(orderText()).then(()=>toast('Pedido copiado')); }
+function exportCSV(){
+  const {amanha,rows}=buildOrder();
+  let csv='Pais,Vinho,Formato,Estoque,Alvo,Pedir\n';
+  rows.forEach(r=>{ csv+=`"${r.w.pais}","${r.w.nome.replace(/"/g,'')}","${r.w.formato}",${r.estoque},${r.alvo},${r.ped}\n`; });
+  const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='pedido_'+amanha+'.csv'; a.click();
+}
+function confirmarEntrega(){
+  const {amanha,rows}=buildOrder();
+  rows.forEach(r=>{ st.stock[r.i]=(st.stock[r.i]??0)+r.ped; }); // entrega sobe ao andar
+  st.lastOrder={}; rows.forEach(r=>st.lastOrder[r.i]=r.ped);
+  st.data=amanha; st.sales={};
+  save(); toast('Novo dia iniciado: '+fmt(amanha)); go('fechamento'); renderFech();
+}
+
+/* ---------- ESTOQUE ---------- */
+function renderEst(){
+  const q=(document.getElementById('estSearch').value||'').toLowerCase();
+  const pf=document.getElementById('estPais').value;
+  const list=document.getElementById('estList'); list.innerHTML=''; let n=0;
+  WINES.forEach((w,i)=>{
+    if(pf&&pf!=='Todos'&&w.pais!==pf) return;
+    if(q&&!w.nome.toLowerCase().includes(q)) return;
+    n++;
+    const el=document.createElement('div'); el.className='wine';
+    el.innerHTML=`<span class="abc ${w.abc}">${w.abc}</span>
+      <div class="nm"><div class="t">${w.nome}</div><div class="m"><span>${w.pais}</span><span>·</span><span>${w.formato}</span></div></div>
+      <input class="num" type="number" min="0" value="${st.stock[i]??0}" onchange="setStock(${i},this.value)">`;
+    list.appendChild(el);
+  });
+  if(!n) list.innerHTML='<div class="empty">Nenhum vinho encontrado.</div>';
+}
+function setStock(i,v){ st.stock[i]=Math.max(0,parseInt(v||0)); save(); }
+
+/* ---------- AJUSTES ---------- */
+function renderCfg(){
+  const wd=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  document.getElementById('cfgWeights').innerHTML=[1,2,3,4,5,6,0].map(d=>
+    `<label class="cfg">${wd[d]}<input class="num" type="number" step="0.1" value="${cfg.weights[d]}" onchange="setW(${d},this.value)"></label>`).join('');
+  const s=document.getElementById('cfgSeason');
+  const keys=Object.keys(cfg.season).sort();
+  s.innerHTML=keys.length?keys.map(k=>`<label class="cfg">${fmt(k)} (${dow(k)})<span><b>${cfg.season[k]}×</b> <button class="btn ghost sm" onclick="delSeason('${k}')">✕</button></span></label>`).join(''):'<div class="muted">Nenhuma data especial.</div>';
+}
+function setW(d,v){ cfg.weights[d]=parseFloat(v)||0; save(); renderCfg(); }
+document.getElementById('cfgBuffer').addEventListener('change',e=>{ cfg.buffer=Math.max(0,parseFloat(e.target.value||0))/100; save(); });
+function addSeason(){ const d=document.getElementById('szDate').value; const m=parseFloat(document.getElementById('szMult').value); if(d&&m){ cfg.season[d]=m; save(); renderCfg(); document.getElementById('szDate').value='';document.getElementById('szMult').value=''; } }
+function delSeason(k){ delete cfg.season[k]; save(); renderCfg(); }
+function backup(){ const blob=new Blob([JSON.stringify({cfg,st},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='backup_adega_'+st.data+'.json'; a.click(); }
+function resetAll(){ if(confirm('Zerar todo o estoque, vendas e ajustes?')){ localStorage.removeItem('somm_cfg'); localStorage.removeItem('somm_state'); location.reload(); } }
+
+init();
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>

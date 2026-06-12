@@ -1,0 +1,17 @@
+{
+  "name": "Adega Terraço Itália — Pedido Diário",
+  "short_name": "Adega Terraço",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1A1A2E",
+  "theme_color": "#1A1A2E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
